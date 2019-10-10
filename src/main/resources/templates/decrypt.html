@@ -1,0 +1,32 @@
+<html xmlns:th="https://www.thymeleaf.org">
+<body>
+
+<div th:if="${message}">
+    <h2 th:text="${message}"/>
+</div>
+
+<div th:if="${decryptedFileLink}">
+    <p>Linka na stiahnutie zasifrovaneho suboru:</p><br>
+    <a th:href="${decryptedFileLink}">Stiahnut</a><br>
+</div>
+
+<div>
+    <form method="POST" enctype="multipart/form-data" action="./decrypt">
+        <table>
+            <tr><td>File to decrypt:</td><td><input type="file" name="file" /></td></tr>
+            <tr><td>Secret key:</td><td><input type="text" name="secret-key" /></td></tr>
+            <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
+        </table>
+    </form>
+</div>
+
+<div>
+    <ul>
+        <li th:each="file : ${encryptedFiles}">
+            <a th:href="${encryptedFile}" th:text="${encryptedFile}" />
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>
