@@ -1,56 +1,83 @@
 package com.upb.zadanie3.storage;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
-
-import java.io.FileOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
+
+import com.upb.zadanie3.security.CryptoLogic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 @Service
 public class FileSystemStorageService implements StorageService {
 
-    @Override
-    public void transfer(InputStream is, OutputStream os) throws IOException {
-        bufferedTransferFromIStoOS(is, os, 64);
-        is.close();
-        os.close();
+    private final Path rootLocation;
+    private CryptoLogic cryptoLogic;
+
+    @Autowired
+    public FileSystemStorageService() {
+        this.rootLocation = Paths.get("upload-dir");
     }
 
-    private void bufferedTransferFromIStoOS(InputStream is, OutputStream os, int bufferSizeInKB) throws IOException {
-        byte[] buffer = new byte[1024 * bufferSizeInKB];
-        int len;
-        while ((len = is.read(buffer)) != -1) {
-            os.write(buffer, 0, len);
+    @Override
+    public void store(MultipartFile file) throws NoSuchAlgorithmException, NoSuchPaddingException {
+        String filename = StringUtils.cleanPath(file.getOriginalFilename());
+        cryptoLogic = new CryptoLogic();
+        File encrypted = new File("encrypted");
+        try {
+            if (file.isEmpty()) {
+                throw new StorageException("Failed to store empty file " + filename);
+            }
+            if (filename.contains("..")) {
+                // This is a security check
+                throw new StorageException(
+                        "Cannot store file with relative path outside current directory "
+                                + filename);
+            }
+            try (InputStream inputStream = file.getInputStream()) {
+                cryptoLogic.encrypt(inputStream, encrypted, (int) file.getSize());
+                Files.copy(new FileInputStream(encrypted), this.rootLocation.resolve(filename),
+                        StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            throw new StorageException("Failed to store file " + filename, e);
+        }
+    }
+
+    @Override
+    public Stream<Path> loadAll() {
+        try {
+            return Files.walk(this.rootLocation, 1)
+                    .filter(path -> !path.equals(this.rootLocation))
+                    .map(this.rootLocation::relativize);
+        } catch (IOException e) {
+            throw new StorageException("Failed to read stored files", e);
         }
 
     }
 
     @Override
-    public void saveSecretKeyToFile(String secretKeyString, String targetFilePath) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(targetFilePath);
-        fileOutputStream.write(secretKeyString.getBytes());
-        fileOutputStream.close();
-    }
-
-    @Override
-    public Stream<Path> loadAll(String subPath) throws IOException {
-            return Files.walk(Paths.get(subPath), 1)
-                .filter(path -> !path.equals(Paths.get(subPath)))
-                .map(Paths.get(subPath)::relativize);
-    }
-
-    @Override
     public Path load(String filename) {
-        return Paths.get("" + filename);
+        return rootLocation.resolve(filename);
     }
 
     @Override
@@ -60,32 +87,26 @@ public class FileSystemStorageService implements StorageService {
             Resource resource = new UrlResource(file.toUri());
             if (resource.exists() || resource.isReadable()) {
                 return resource;
-            }
-            else {
-                throw new StorageException(
+            } else {
+                throw new StorageFileNotFoundException(
                         "Could not read file: " + filename);
 
             }
-        }
-        catch (MalformedURLException e) {
-            throw new StorageException("Could not read file: " + filename, e);
+        } catch (MalformedURLException e) {
+            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
         }
     }
 
     @Override
-    public void deleteAll(String subPath) {
-        FileSystemUtils.deleteRecursively(Paths.get(subPath).toFile());
+    public void deleteAll() {
+        FileSystemUtils.deleteRecursively(rootLocation.toFile());
     }
 
     @Override
     public void init() {
         try {
-            Files.createDirectories(Paths.get(StoragePaths.ROOT_DIR));
-            Files.createDirectories(Paths.get(StoragePaths.ENCRYPTED_DIR));
-            Files.createDirectories(Paths.get(StoragePaths.DECRYPTED_DIR));
-            Files.createDirectories(Paths.get(StoragePaths.SECRET_KEYS_DIR));
-        }
-        catch (IOException e) {
+            Files.createDirectories(rootLocation);
+        } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }
     }

@@ -1,25 +1,25 @@
 package com.upb.zadanie3.storage;
 
 import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import javax.crypto.NoSuchPaddingException;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
 public interface StorageService {
-    void transfer(InputStream is, OutputStream os) throws IOException;
 
-    void saveSecretKeyToFile(String secretKeyString, String targetFilePath) throws IOException;
+    void init();
 
-    Stream<Path> loadAll(String subPath) throws IOException;
+    void store(MultipartFile file) throws NoSuchAlgorithmException, NoSuchPaddingException;
+
+    Stream<Path> loadAll();
 
     Path load(String filename);
 
     Resource loadAsResource(String filename);
 
-    void deleteAll(String subPath);
+    void deleteAll();
 
-    void init();
 }
