@@ -4,6 +4,7 @@
         body {
             background: #e6ffe6;
         }
+
         #main {
             width: 1200px;
             margin: 0 auto;
@@ -13,34 +14,50 @@
     </style>
 </head>
 <body>
+
 <div id="main">
+    <p>Choose file to encrypt:</p>
     <div th:if="${message}">
         <h2 th:text="${message}"/>
     </div>
-
+    <form method="POST" enctype="multipart/form-data" action="/encrypt">
+        <input type="file" name="file"/>
+        <p>Please choose method:</p>
+        <input id="generate" type="radio" name="encrypt-method" value="generate" checked>Generate key pair<br>
+        <input id="upload-public" type="radio" name="encrypt-method" value="upload-public">Upload public key for encryption<br>
+        <input id="public-key-input" type="file" name="public-key-file" style="display: none; margin: 20px 0">
+        <input type="submit" value="Encrypt file"/>
+    </form>
     <div>
-        <form method="POST" enctype="multipart/form-data" action="/">
-            <table>
-                <tr>
-                    <td>File to upload:</td>
-                    <td><input type="file" name="file"/></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><input type="submit" value="Upload"/></td>
-                </tr>
-            </table>
-        </form>
-    </div>
-
-    <div>
+        <p>List of encrypted files:</p>
         <ul>
             <li th:each="file : ${files}">
                 <a th:href="${file}" th:text="${file}"/>
             </li>
         </ul>
+        <p>List of keys:</p>
+        <ul>
+            <li th:each="file : ${keys}">
+                <a th:href="${key}" th:text="${key}"/>
+            </li>
+        </ul>
     </div>
 </div>
-
+<script>
+    document.getElementById("upload-public").addEventListener("click", function () {
+        if (document.getElementById('generate').checked) {
+            document.getElementById("public-key-input").style.display = "none"
+        } else if (document.getElementById('upload-public').checked) {
+            document.getElementById("public-key-input").style.display = "block"
+        }
+    });
+    document.getElementById("generate").addEventListener("click", function () {
+        if (document.getElementById('generate').checked) {
+            document.getElementById("public-key-input").style.display = "none"
+        } else if (document.getElementById('upload-public').checked) {
+            document.getElementById("public-key-input").style.display = "block"
+        }
+    });
+</script>
 </body>
 </html>

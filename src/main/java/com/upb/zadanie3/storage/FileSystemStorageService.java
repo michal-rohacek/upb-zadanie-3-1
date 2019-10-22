@@ -31,17 +31,18 @@ import javax.crypto.NoSuchPaddingException;
 public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation;
+    private final Path rootKeysLocation;
     private CryptoLogic cryptoLogic;
 
     @Autowired
     public FileSystemStorageService() {
         this.rootLocation = Paths.get("upload-dir");
+        this.rootKeysLocation = Paths.get("src/keys");
     }
 
     @Override
-    public void store(MultipartFile file) throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void store(MultipartFile file, CryptoLogic cryptoLogic) throws NoSuchAlgorithmException, NoSuchPaddingException {
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
-        cryptoLogic = new CryptoLogic();
         File encrypted = new File("encrypted");
         try {
             if (file.isEmpty()) {
@@ -72,8 +73,19 @@ public class FileSystemStorageService implements StorageService {
         } catch (IOException e) {
             throw new StorageException("Failed to read stored files", e);
         }
-
     }
+
+    @Override
+    public Stream<Path> loadAllKeys() {
+        try {
+            return Files.walk(this.rootKeysLocation, 1)
+                    .filter(path -> !path.equals(this.rootKeysLocation))
+                    .map(this.rootKeysLocation::relativize);
+        } catch (IOException e) {
+            throw new StorageException("Failed to read stored files", e);
+        }
+    }
+
 
     @Override
     public Path load(String filename) {

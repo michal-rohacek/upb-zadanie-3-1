@@ -4,9 +4,13 @@ import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 public class CryptoLogic {
     private static final int IV_SIZE = 16;
@@ -19,6 +23,7 @@ public class CryptoLogic {
     private SecretKey secretKey;
     private GCMParameterSpec gcmParamSpec;
     private PKCS8EncodedKeySpec pkcs8KeySpec;
+    private X509EncodedKeySpec x509EncodedKeySpec;
     private KeyPairGenerator keyPairGenerator;
     private KeyPair keyPair;
     private PrivateKey privateKey;
@@ -31,20 +36,63 @@ public class CryptoLogic {
     private byte[] cipherText;
     private byte[] plainText;
 
-    public CryptoLogic(SecretKey secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException {
-        this.cipherSymmetric = Cipher.getInstance("AES/GCM/NoPadding");
-        this.cipherAsymmetric = Cipher.getInstance("RSA");
-        this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        this.secretKey = secretKey;
-    }
-
     public CryptoLogic() throws NoSuchPaddingException, NoSuchAlgorithmException {
         this.cipherSymmetric = Cipher.getInstance("AES/GCM/NoPadding");
         this.cipherAsymmetric = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
     }
 
-    public void setSecretKey(SecretKey secretKey) {
-        this.secretKey = secretKey;
+    public void generateKeyPair() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        Path pathPrivateKey = Paths.get("src/keys/private.key");
+        Path pathPublicKey = Paths.get("src/keys/public.key");
+        if (Files.exists(pathPrivateKey) || Files.exists(pathPublicKey)) {
+            loadKeyPair();
+            return;
+        }
+        this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        this.keyPairGenerator.initialize(RSA_KEY_SIZE);
+        this.keyPair = this.keyPairGenerator.generateKeyPair();
+        this.privateKey = this.keyPair.getPrivate();
+        this.publicKey = this.keyPair.getPublic();
+        FileOutputStream outputStream = new FileOutputStream(new File("src/keys/private.key"));
+        outputStream.write(this.privateKey.getEncoded());
+        outputStream.close();
+        outputStream = new FileOutputStream(new File("src/keys/public.key"));
+        outputStream.write(this.publicKey.getEncoded());
+        outputStream.close();
+    }
+
+    public void loadKeyPair() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        File privateKeyFile = new File("src/keys/private.key");
+        File publicKeyFile = new File("src/keys/public.key");
+
+        FileInputStream fileInputStream = new FileInputStream(privateKeyFile);
+        this.privateKeyBytes = new byte[(int) privateKeyFile.length()];
+        fileInputStream.read(this.privateKeyBytes);
+        fileInputStream.close();
+
+        fileInputStream = new FileInputStream(publicKeyFile);
+        this.publicKeyBytes = new byte[(int) publicKeyFile.length()];
+        fileInputStream.read(this.publicKeyBytes);
+        fileInputStream.close();
+
+        this.pkcs8KeySpec = new PKCS8EncodedKeySpec(this.privateKeyBytes);
+        this.keyFactory = KeyFactory.getInstance("RSA");
+        this.privateKey = this.keyFactory.generatePrivate(this.pkcs8KeySpec);
+
+        this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
+        this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
+    }
+
+    public void loadPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        File publicKeyFile = new File("src/keys/public.key");
+
+        FileInputStream fileInputStream = new FileInputStream(publicKeyFile);
+        this.publicKeyBytes = new byte[(int) publicKeyFile.length()];
+        fileInputStream.read(this.publicKeyBytes);
+        fileInputStream.close();
+
+        this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
+        this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
     }
 
     public void encrypt(InputStream inputStream, File fOut, int fileSize) throws NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
@@ -60,11 +108,7 @@ public class CryptoLogic {
         this.cipherSymmetric.init(Cipher.ENCRYPT_MODE, this.secretKey, this.gcmParamSpec);
 
         // Asymmetric encryption params
-        this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        this.keyPairGenerator.initialize(RSA_KEY_SIZE);
-        this.keyPair = this.keyPairGenerator.generateKeyPair();
-        this.privateKey = this.keyPair.getPrivate();
-        this.publicKey = this.keyPair.getPublic();
+
         this.cipherAsymmetric.init(Cipher.ENCRYPT_MODE, this.publicKey);
 
         this.plainText = new byte[fileSize];
@@ -79,9 +123,7 @@ public class CryptoLogic {
         out.write(encryptedSymmetricKey);
         out.write(this.cipherSymmetric.doFinal(plainText));
 
-        FileOutputStream outputStream = new FileOutputStream(new File("/home/kovac/Desktop/private.key"));
-        outputStream.write(this.privateKey.getEncoded());
-        outputStream.close();
+
     }
 
     public void decrypt(File fIn, OutputStream out, File privateKeyFile) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
@@ -90,16 +132,6 @@ public class CryptoLogic {
         // Extract IV
         this.ivBytes = new byte[IV_SIZE];
         inputStream.read(this.ivBytes);
-
-        // Extract public asymmetric key
-        //this.publicKeyBytes = new byte[RSA_KEY_SIZE];
-        //inputStream.read(this.publicKeyBytes);
-
-        // Read private key from a file
-        FileInputStream fileInputStream = new FileInputStream(privateKeyFile);
-        this.privateKeyBytes = new byte[(int) privateKeyFile.length()];
-        fileInputStream.read(this.privateKeyBytes);
-        fileInputStream.close();
 
         // Decrypt symmetric key
         this.pkcs8KeySpec = new PKCS8EncodedKeySpec(this.privateKeyBytes);
