@@ -34,7 +34,6 @@ import java.util.zip.ZipOutputStream;
 public class FileUploadController {
 
     private final StorageService storageService;
-    private static final int RSA_KEY_SIZE = 4096;
 
     @Autowired
     public FileUploadController(StorageService storageService) {
@@ -114,8 +113,6 @@ public class FileUploadController {
         return "redirect:/decrypt";
     }
 
-
-
     @ExceptionHandler(StorageFileNotFoundException.class)
     public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
         return ResponseEntity.notFound().build();
@@ -156,5 +153,4 @@ public class FileUploadController {
     public String errorController() {
         return "error";
     }
-
 }
