@@ -15,13 +15,11 @@ public interface StorageService {
 
     void store(MultipartFile file, CryptoLogic cryptoLogic) throws NoSuchAlgorithmException, NoSuchPaddingException;
 
-    Stream<Path> loadAll();
+    Stream<Path> loadAll(Path location);
 
-    Stream<Path> loadAllKeys();
+    Resource loadFiles(String filename);
 
-    Path load(String filename);
-
-    Resource loadAsResource(String filename);
+    Resource loadKeys(String filename);
 
     void deleteAll();
 

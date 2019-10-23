@@ -26,19 +26,13 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.xml.stream.Location;
 
 @Service
 public class FileSystemStorageService implements StorageService {
 
-    private final Path rootLocation;
-    private final Path rootKeysLocation;
-    private CryptoLogic cryptoLogic;
-
     @Autowired
-    public FileSystemStorageService() {
-        this.rootLocation = Paths.get("upload-dir");
-        this.rootKeysLocation = Paths.get("src/keys");
-    }
+    public FileSystemStorageService() { }
 
     @Override
     public void store(MultipartFile file, CryptoLogic cryptoLogic) throws NoSuchAlgorithmException, NoSuchPaddingException {
@@ -56,7 +50,7 @@ public class FileSystemStorageService implements StorageService {
             }
             try (InputStream inputStream = file.getInputStream()) {
                 cryptoLogic.encrypt(inputStream, encrypted, (int) file.getSize());
-                Files.copy(new FileInputStream(encrypted), this.rootLocation.resolve(filename),
+                Files.copy(new FileInputStream(encrypted), LocationConfig.filesLocation.resolve(filename),
                         StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
@@ -65,22 +59,11 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Stream<Path> loadAll() {
+    public Stream<Path> loadAll(Path location) {
         try {
-            return Files.walk(this.rootLocation, 1)
-                    .filter(path -> !path.equals(this.rootLocation))
-                    .map(this.rootLocation::relativize);
-        } catch (IOException e) {
-            throw new StorageException("Failed to read stored files", e);
-        }
-    }
-
-    @Override
-    public Stream<Path> loadAllKeys() {
-        try {
-            return Files.walk(this.rootKeysLocation, 1)
-                    .filter(path -> !path.equals(this.rootKeysLocation))
-                    .map(this.rootKeysLocation::relativize);
+            return Files.walk(location, 1)
+                    .filter(path -> !path.equals(location))
+                    .map(location::relativize);
         } catch (IOException e) {
             throw new StorageException("Failed to read stored files", e);
         }
@@ -88,36 +71,41 @@ public class FileSystemStorageService implements StorageService {
 
 
     @Override
-    public Path load(String filename) {
-        return rootLocation.resolve(filename);
+    public Resource loadFiles(String filename) {
+        Path file = LocationConfig.filesLocation.resolve(filename);
+        return loadAsResource(file);
     }
 
     @Override
-    public Resource loadAsResource(String filename) {
+    public Resource loadKeys(String filename) {
+        Path key = LocationConfig.keysLocation.resolve(filename);
+        return loadAsResource(key);
+    }
+
+    private Resource loadAsResource(Path file) {
         try {
-            Path file = load(filename);
             Resource resource = new UrlResource(file.toUri());
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
                 throw new StorageFileNotFoundException(
-                        "Could not read file: " + filename);
+                        "Could not read file: ");
 
             }
         } catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
+            throw new StorageFileNotFoundException("Could not read file: ", e);
         }
     }
 
     @Override
     public void deleteAll() {
-        FileSystemUtils.deleteRecursively(rootLocation.toFile());
+        FileSystemUtils.deleteRecursively(LocationConfig.filesLocation.toFile());
     }
 
     @Override
     public void init() {
         try {
-            Files.createDirectories(rootLocation);
+            Files.createDirectories(LocationConfig.filesLocation);
         } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }

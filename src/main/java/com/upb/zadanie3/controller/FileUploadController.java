@@ -1,6 +1,7 @@
 package com.upb.zadanie3.controller;
 
 import com.upb.zadanie3.security.CryptoLogic;
+import com.upb.zadanie3.storage.LocationConfig;
 import com.upb.zadanie3.storage.StorageFileNotFoundException;
 import com.upb.zadanie3.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.stream.Collectors;
@@ -38,17 +40,19 @@ public class FileUploadController {
     }
 
     @GetMapping("/encrypt")
-    public String listUploadedFiles(Model model, Model keys) throws IOException {
+    public String listUploadedFiles(Model model) throws IOException {
 
-        model.addAttribute("files", storageService.loadAll().map(
+        model.addAttribute("files", storageService.loadAll(LocationConfig.filesLocation).map(
                 path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
                         "serveFile", path.getFileName().toString()).build().toString())
                 .collect(Collectors.toList()));
 
-        keys.addAttribute("keys", storageService.loadAllKeys().map(
+        model.addAttribute("keys", storageService.loadAll(LocationConfig.keysLocation).map(
                 path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
-                        "serveFile", path.getFileName().toString()).build().toString())
+                        "serveKey", path.getFileName().toString()).build().toString())
+                .filter(p -> p.contains("public"))
                 .collect(Collectors.toList()));
+
         return "uploadForm";
     }
 
@@ -56,7 +60,16 @@ public class FileUploadController {
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
 
-        Resource file = storageService.loadAsResource(filename);
+        Resource file = storageService.loadFiles(filename);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+    }
+
+    @GetMapping("/keys/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveKey(@PathVariable String filename) {
+
+        Resource file = storageService.loadKeys(filename);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
@@ -67,10 +80,12 @@ public class FileUploadController {
                                    @RequestParam("encrypt-method") String encryptMethod,
                                    RedirectAttributes redirectAttributes) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
+
         if (encryptMethod.equals("generate")) {
             cryptoLogic.generateKeyPair();
 
         } else if (encryptMethod.equals("upload-public")) {
+            //mystery if else
         }
         storageService.store(file, cryptoLogic);
         redirectAttributes.addFlashAttribute("message",
