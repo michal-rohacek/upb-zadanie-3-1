@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +58,11 @@ public class FileUploadController {
         return "uploadForm";
     }
 
+    @GetMapping("/decrypt")
+    public String decryptController() {
+        return "decrypt";
+    }
+
     @GetMapping("/files/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
@@ -80,23 +87,39 @@ public class FileUploadController {
                                    @RequestParam("encrypt-method") String encryptMethod,
                                    RedirectAttributes redirectAttributes) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
-
         if (encryptMethod.equals("generate")) {
             cryptoLogic.generateKeyPair();
-
         } else if (encryptMethod.equals("upload-public")) {
-            //mystery if else
+            cryptoLogic.loadPublicKey(publicKeyFile);
+        } else if (encryptMethod.equals("use-generated-key")) {
+            cryptoLogic.loadPublicKey();
         }
         storageService.store(file, cryptoLogic);
         redirectAttributes.addFlashAttribute("message",
-                "You successfully uploaded " + file.getOriginalFilename() + "!");
+                "File " + file.getOriginalFilename() + " has been encrypted successfully!");
 
         return "redirect:/encrypt";
     }
 
+    @PostMapping("/decrypt")
+    public String handleDecryptFile(@RequestParam("file-to-decrypt") MultipartFile fileToDecrypt,
+                                    @RequestParam("upload-secret") MultipartFile uploadSecretKey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+        CryptoLogic cryptoLogic = new CryptoLogic();
+        cryptoLogic.decrypt(fileToDecrypt,uploadSecretKey);
+        return "redirect:/decrypt";
+    }
+
+
+
     @ExceptionHandler(StorageFileNotFoundException.class)
     public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/error")
+    @ResponseBody
+    public String errorController() {
+        return "error";
     }
 
 }

@@ -1,33 +1,26 @@
 <html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <style>
+        body {
+            background: #e6ffe6;
+        }
+
+        #main {
+            width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 3px;
+        }
+    </style>
+</head>
 <body>
 
-<div th:if="${message}">
-    <h2 th:text="${message}"/>
-</div>
-
-<div th:if="${decryptedFileLink}">
-    <p>Linka na stiahnutie odsifrovaneho suboru:</p><br>
-    <a th:href="${decryptedFileLink}">Stiahnut</a><br>
-</div>
-
-<div>
-    <form method="POST" enctype="multipart/form-data" action="./decrypt">
-        <table>
-            <tr><td>File to decrypt:</td><td><input type="file" name="file" /></td></tr>
-            <tr><td>Secret key:</td><td><input type="text" name="secret-key" /></td></tr>
-            <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
-        </table>
+<div id="main">
+    <form method="POST" enctype="multipart/form-data" action="/decrypt">
+        <input id="file-to-decrypt" type="file" name="file-to-decrypt"  checked>File to decrypt<br>
+        <input id="upload-secret" type="file" name="upload-secret">Secret key<br>
+        <input type="submit" value="Decrypt file"/>
     </form>
 </div>
-
-<div>
-    <ul>
-        <li th:each="file : ${encryptedFiles}">
-            <a th:href="${encryptedFile}" th:text="${encryptedFile}" />
-        </li>
-    </ul>
-</div>
-<a href="../">Homepage</a>
-
 </body>
 </html>
