@@ -6,6 +6,7 @@ import com.upb.zadanie3.storage.StorageFileNotFoundException;
 import com.upb.zadanie3.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,12 +19,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 public class FileUploadController {
@@ -114,6 +119,36 @@ public class FileUploadController {
     @ExceptionHandler(StorageFileNotFoundException.class)
     public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/decrypt/decApp")
+    public ResponseEntity<Resource> downloadApp() throws IOException {
+        File outputFile =  new File("src/app/DecryptApplication.zip");
+
+        File jar = new File("src/app/DecryptApplication.jar");
+        File key = new File("src/keys/private.key");
+        List<File> files = new ArrayList<>();
+        Collections.addAll(files, jar, key);
+
+        FileOutputStream fos = new FileOutputStream(outputFile);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        ZipOutputStream zos = new ZipOutputStream(bos);
+
+        for(File file : files) {
+            zos.putNextEntry(new ZipEntry(file.getName()));
+
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[1024 * 64];
+            int len;
+            while((len = fis.read(buffer)) != -1) {
+                zos.write(buffer, 0, len);
+            }
+        }
+
+        zos.close();
+        Resource resource = new UrlResource(outputFile.toURI());
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + resource.getFilename() + "\"").body(resource);
     }
 
     @GetMapping("/error")
