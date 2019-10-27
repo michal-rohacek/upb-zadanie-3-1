@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.ExemptionMechanismException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
@@ -85,6 +86,15 @@ public class FileUploadController {
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 
+    @GetMapping("/decrypt/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveDecryptedFile(@PathVariable String filename) {
+
+        Resource file = storageService.loadDecryptedFile(filename);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+    }
+
     @PostMapping("/encrypt")
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
                                    @RequestParam("public-key-file") MultipartFile publicKeyFile,
@@ -110,7 +120,7 @@ public class FileUploadController {
                                     @RequestParam("upload-secret") MultipartFile uploadSecretKey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
         cryptoLogic.decrypt(fileToDecrypt,uploadSecretKey);
-        return "redirect:/decrypt";
+        return "redirect:/decrypt/"+fileToDecrypt.getOriginalFilename();
     }
 
     @ExceptionHandler(StorageFileNotFoundException.class)

@@ -1,14 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="https://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <style>
+        body {
+            background: #e6ffe6;
+        }
+
+        #main {
+            width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 3px;
+        }
+    </style>
 </head>
 <body>
-<a href="./encrypt">ENCRYPT</a><br>
-<a href="./decrypt">DECRYPT</a><br>
-<form action="./decrypt/decApp">
-    <input type="submit" value="Download application" />
-</form>
+<div id="main">
+    <a href="./encrypt">ENCRYPT</a><br><br>
+    <a href="./decrypt">DECRYPT</a><br><br>
+    <form action="./decrypt/decApp">
+        <input type="submit" value="Download application" />
+    </form>
+</div>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.upb.zadanie3.security;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
@@ -13,6 +14,8 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class CryptoLogic {
     private static final int IV_SIZE = 16;
@@ -22,7 +25,6 @@ public class CryptoLogic {
     private static int ENCRYPTED_SYMMETRIC_KEY_SIZE = 0;
     private static String RSA_OAEP = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
     private static String AES_GCM = "AES/GCM/NoPadding";
-    private static String HMAC = "HmacSHA256";
 
     private Cipher cipherSymmetric;
     private Cipher cipherAsymmetric;
@@ -52,8 +54,10 @@ public class CryptoLogic {
         Path pathPublicKey = Paths.get("src/keys/public.key");
 
         if (Files.exists(pathPrivateKey) || Files.exists(pathPublicKey)) {
-            loadKeyPair();
-            return;
+            Files.delete(pathPrivateKey);
+            Files.delete(pathPublicKey);
+            //loadKeyPair();
+            //return;
         }
 
         this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -171,16 +175,8 @@ public class CryptoLogic {
     public void decrypt(MultipartFile inputFile, MultipartFile inputPrivateKeyFile) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         File fIn = multipartToFile(inputFile,inputFile.getName());
         File privateKeyFile = multipartToFile(inputPrivateKeyFile,"input-private-key");
-        String finalFileName;
 
-        if (fIn.getName().lastIndexOf(".") == -1) {
-            finalFileName = fIn.getName();
-        } else {
-            String extension = fIn.getName().substring(fIn.getName().lastIndexOf("."));
-            finalFileName = fIn.getName() + extension;
-        }
-
-        File decryptedFile = new File("src/decrypted/" + finalFileName);
+        File decryptedFile = new File("src/decrypted/" + inputFile.getOriginalFilename());
         FileInputStream inputStream = new FileInputStream(fIn);
 
         this.privateKeyBytes = new byte[(int) privateKeyFile.length()];
@@ -221,18 +217,5 @@ public class CryptoLogic {
         SecureRandom secureRandom = new SecureRandom();
         secureRandom.nextBytes(ivBytes);
         return ivBytes;
-    }
-
-    private byte[] generateMAC(InputStream in) throws NoSuchAlgorithmException, IOException {
-        Mac mac = Mac.getInstance(HMAC);
-        // mac.init(); // TODO: MAC init with key
-        byte[] ibuf = new byte[1024 * 64];
-        int len;
-
-        while ((len = in.read(ibuf)) != -1) {
-            mac.update(ibuf, 0, len);
-        }
-
-        return mac.doFinal();
     }
 }
