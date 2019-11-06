@@ -105,29 +105,8 @@ public class CryptoLogic {
         this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
     }
 
-    public void loadPublicKey() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-        Path pathPublicKey = Paths.get("src/keys/public.key");
-        File publicKeyFile = new File(pathPublicKey.toString());
-        FileInputStream fileInputStream = new FileInputStream(publicKeyFile);
-        this.publicKeyBytes = new byte[(int) publicKeyFile.length()];
-        fileInputStream.read(this.publicKeyBytes);
-        fileInputStream.close();
-
-        this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
-        this.keyFactory = KeyFactory.getInstance("RSA");
-        this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
-    }
-
-    public void loadPublicKey(MultipartFile publicKeyFile ) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        File publicKeyFileTransfer = multipartToFile(publicKeyFile,"public.key");
-        File publicKeyToSave = new File("src/keys/public.key");
-        copyFileUsingStream(publicKeyFileTransfer,publicKeyToSave);
-
-        FileInputStream fileInputStream = new FileInputStream(publicKeyFileTransfer);
-        this.publicKeyBytes = new byte[(int) publicKeyFileTransfer.length()];
-        fileInputStream.read(this.publicKeyBytes);
-        fileInputStream.close();
-
+    public void loadPublicKey(String publicKey) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        this.publicKeyBytes = Base64.getDecoder().decode(publicKey);
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
         this.keyFactory = KeyFactory.getInstance("RSA");
         this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);

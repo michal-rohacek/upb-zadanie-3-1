@@ -12,26 +12,26 @@ public class User {
     private Integer id;
 
     private String login;
-    private String password_hash;
-    private String public_key;
-    private String private_key;
+    private String passwordHash;
+    private String publicKey;
+    private String privateKey;
 
     public User() {
     }
 
-    public User(String login, String password_hash, String public_key, String private_key) {
+    public User(String login, String passwordHash, String publicKey, String privateKey) {
         this.login = login;
-        this.password_hash = password_hash;
-        this.public_key = public_key;
-        this.private_key = private_key;
+        this.passwordHash = passwordHash;
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 
-    public String getPrivate_key() {
-        return private_key;
+    public String getPrivateKey() {
+        return privateKey;
     }
 
-    public void setPrivate_key(String private_key) {
-        this.private_key = private_key;
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
     }
 
     public String getLogin() {
@@ -42,20 +42,20 @@ public class User {
         this.login = login;
     }
 
-    public String getPassword_hash() {
-        return password_hash;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPassword_hash(String password_hash) {
-        this.password_hash = password_hash;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
-    public String getPublic_key() {
-        return public_key;
+    public String getPublicKey() {
+        return publicKey;
     }
 
-    public void setPublic_key(String public_key) {
-        this.public_key = public_key;
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 
     public Integer getId() {

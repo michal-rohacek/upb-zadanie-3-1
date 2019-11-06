@@ -33,4 +33,11 @@ public class UserServiceImpl implements UserService {
     public void save(User user) {
         userRepository.save(user);
     }
+
+    @Override
+    public User findByLoginAndAndPasswordHash(String login, String passwordHash) {
+        return userRepository.findByLoginAndAndPasswordHash(login,passwordHash);
+    }
+
+
 }

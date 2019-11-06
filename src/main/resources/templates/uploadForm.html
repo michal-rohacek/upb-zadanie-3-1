@@ -22,11 +22,8 @@
     </div>
     <form method="POST" enctype="multipart/form-data" action="/encrypt">
         <input type="file" name="file"/>
-        <p>Please choose a method:</p>
-        <input id="generate" type="radio" name="encrypt-method" value="generate" checked>Generate key pair<br>
-        <input id="upload-public" type="radio" name="encrypt-method" value="upload-public">Upload public key for encryption<br>
-        <input id="use-generated-key" type="radio" name="encrypt-method" value="use-generated-key">Use generated public key<br>
-        <input id="public-key-input" type="file" name="public-key-file" style="display: none; margin: 10px 0"><br>
+
+        <input id="public-key-input" type="text" name="public-key-input" value=""><br>
         <input type="submit" value="Encrypt file"/>
     </form>
     <div>
@@ -72,5 +69,22 @@
         }
     });
 </script>
+<table>
+    <thead>
+    <tr>
+        <th> User </th>
+        <th> Public key </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${users.empty}">
+        <td colspan="2"> No users Available </td>
+    </tr>
+    <tr th:each="user : ${users}">
+        <td><span th:text="${user.login}"> Username </span></td>
+        <td><span th:text="${user.publicKey}"> Public key </span></td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>

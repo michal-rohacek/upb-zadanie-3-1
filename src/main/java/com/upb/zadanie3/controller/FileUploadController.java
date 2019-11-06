@@ -4,6 +4,8 @@ import com.upb.zadanie3.security.CryptoLogic;
 import com.upb.zadanie3.storage.LocationConfig;
 import com.upb.zadanie3.storage.StorageFileNotFoundException;
 import com.upb.zadanie3.storage.StorageService;
+import com.upb.zadanie3.user.domain.User;
+import com.upb.zadanie3.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -37,6 +39,9 @@ public class FileUploadController {
     private final StorageService storageService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     public FileUploadController(StorageService storageService) {
         this.storageService = storageService;
     }
@@ -60,6 +65,7 @@ public class FileUploadController {
                 .filter(p -> p.contains("public"))
                 .collect(Collectors.toList()));
 
+        model.addAttribute("users", userService.getAllUsers());
         return "uploadForm";
     }
 
@@ -97,18 +103,12 @@ public class FileUploadController {
 
     @PostMapping("/encrypt")
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
-                                   @RequestParam("public-key-file") MultipartFile publicKeyFile,
-                                   @RequestParam("encrypt-method") String encryptMethod,
+                                   @RequestParam("public-key-input") String publicKey,
                                    RedirectAttributes redirectAttributes) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
-        if (encryptMethod.equals("generate")) {
-            cryptoLogic.generateKeyPair();
-        } else if (encryptMethod.equals("upload-public")) {
-            cryptoLogic.loadPublicKey(publicKeyFile);
-        } else if (encryptMethod.equals("use-generated-key")) {
-            cryptoLogic.loadPublicKey();
-        }
+        cryptoLogic.loadPublicKey(publicKey);
         storageService.store(file, cryptoLogic);
+
         redirectAttributes.addFlashAttribute("message",
                 "File " + file.getOriginalFilename() + " has been encrypted successfully!");
 

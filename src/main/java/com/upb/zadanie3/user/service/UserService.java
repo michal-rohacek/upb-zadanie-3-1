@@ -13,4 +13,6 @@ public interface UserService {
     public List<String> getAllPublicKeys();
 
     public void save(User user);
+
+    public User findByLoginAndAndPasswordHash(String login,String passwordHash);
 }
