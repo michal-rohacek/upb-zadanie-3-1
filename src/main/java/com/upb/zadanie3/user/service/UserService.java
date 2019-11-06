@@ -11,4 +11,6 @@ public interface UserService {
     public User getUserByLogin(String login);
 
     public List<String> getAllPublicKeys();
+
+    public void save(User user);
 }

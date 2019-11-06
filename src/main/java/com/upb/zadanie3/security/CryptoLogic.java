@@ -1,7 +1,6 @@
 package com.upb.zadanie3.security;
 
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
@@ -14,7 +13,6 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 
 public class CryptoLogic {
@@ -71,6 +69,18 @@ public class CryptoLogic {
         outputStream = new FileOutputStream(new File("src/keys/public.key"));
         outputStream.write(this.publicKey.getEncoded());
         outputStream.close();
+    }
+
+    public Keys generateKeyPairForDB() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+
+        this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        this.keyPairGenerator.initialize(RSA_KEY_SIZE, new SecureRandom());
+        this.keyPair = this.keyPairGenerator.generateKeyPair();
+        String privateKey = Base64.getEncoder().encodeToString(this.keyPair.getPrivate().getEncoded());
+        String publicKey = Base64.getEncoder().encodeToString(this.keyPair.getPublic().getEncoded());
+        Keys keys = new Keys(privateKey, publicKey);
+
+        return keys;
     }
 
     public void loadKeyPair() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {

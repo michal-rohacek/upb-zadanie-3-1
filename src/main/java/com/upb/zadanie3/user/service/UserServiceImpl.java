@@ -28,4 +28,9 @@ public class UserServiceImpl implements UserService {
     public List<String> getAllPublicKeys() {
         return Collections.emptyList();
     }
+
+    @Override
+    public void save(User user) {
+        userRepository.save(user);
+    }
 }

@@ -14,8 +14,24 @@ public class User {
     private String login;
     private String password_hash;
     private String public_key;
+    private String private_key;
 
     public User() {
+    }
+
+    public User(String login, String password_hash, String public_key, String private_key) {
+        this.login = login;
+        this.password_hash = password_hash;
+        this.public_key = public_key;
+        this.private_key = private_key;
+    }
+
+    public String getPrivate_key() {
+        return private_key;
+    }
+
+    public void setPrivate_key(String private_key) {
+        this.private_key = private_key;
     }
 
     public String getLogin() {
