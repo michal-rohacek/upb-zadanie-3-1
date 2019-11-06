@@ -82,6 +82,12 @@ public class FileSystemStorageService implements StorageService {
         return loadAsResource(key);
     }
 
+    @Override
+    public Resource loadDecryptedFile(String filename) {
+        Path key = LocationConfig.encryptedFileLocation.resolve(filename);
+        return loadAsResource(key);
+    }
+
     private Resource loadAsResource(Path file) {
         try {
             Resource resource = new UrlResource(file.toUri());

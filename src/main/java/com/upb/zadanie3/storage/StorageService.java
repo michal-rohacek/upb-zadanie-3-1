@@ -21,6 +21,8 @@ public interface StorageService {
 
     Resource loadKeys(String filename);
 
+    Resource loadDecryptedFile(String filename);
+
     void deleteAll();
 
 }

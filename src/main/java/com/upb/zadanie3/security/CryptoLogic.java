@@ -1,6 +1,7 @@
 package com.upb.zadanie3.security;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
@@ -13,13 +14,17 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class CryptoLogic {
     private static final int IV_SIZE = 16;
-    private static final int KEY_SIZE = 16;
-    private static final int AES_KEY_SIZE = 128;
+    private static final int AES_KEY_SIZE_BYTES = 32;
+    private static final int AES_KEY_SIZE_BITS = 256;
     private static final int RSA_KEY_SIZE = 2048;
     private static int ENCRYPTED_SYMMETRIC_KEY_SIZE = 0;
+    private static String RSA_OAEP = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+    private static String AES_GCM = "AES/GCM/NoPadding";
 
     private Cipher cipherSymmetric;
     private Cipher cipherAsymmetric;
@@ -33,26 +38,30 @@ public class CryptoLogic {
     private PublicKey publicKey;
     private KeyFactory keyFactory;
     private byte[] ivBytes = new byte[IV_SIZE];
-    private byte[] keyBytes = new byte[KEY_SIZE];
+    private byte[] keyBytes = new byte[AES_KEY_SIZE_BYTES];
     private byte[] publicKeyBytes = new byte[RSA_KEY_SIZE];
     private byte[] privateKeyBytes = new byte[RSA_KEY_SIZE];
     private byte[] cipherText;
     private byte[] plainText;
 
     public CryptoLogic() throws NoSuchPaddingException, NoSuchAlgorithmException {
-        this.cipherSymmetric = Cipher.getInstance("AES/GCM/NoPadding");
-        this.cipherAsymmetric = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+        this.cipherSymmetric = Cipher.getInstance(AES_GCM);
+        this.cipherAsymmetric = Cipher.getInstance(RSA_OAEP);
     }
 
     public void generateKeyPair() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         Path pathPrivateKey = Paths.get("src/keys/private.key");
         Path pathPublicKey = Paths.get("src/keys/public.key");
+
         if (Files.exists(pathPrivateKey) || Files.exists(pathPublicKey)) {
-            loadKeyPair();
-            return;
+            Files.delete(pathPrivateKey);
+            Files.delete(pathPublicKey);
+            //loadKeyPair();
+            //return;
         }
+
         this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        this.keyPairGenerator.initialize(RSA_KEY_SIZE);
+        this.keyPairGenerator.initialize(RSA_KEY_SIZE, new SecureRandom());
         this.keyPair = this.keyPairGenerator.generateKeyPair();
         this.privateKey = this.keyPair.getPrivate();
         this.publicKey = this.keyPair.getPublic();
@@ -85,6 +94,7 @@ public class CryptoLogic {
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
         this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
     }
+
     public void loadPublicKey() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         Path pathPublicKey = Paths.get("src/keys/public.key");
         File publicKeyFile = new File(pathPublicKey.toString());
@@ -96,7 +106,6 @@ public class CryptoLogic {
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
         this.keyFactory = KeyFactory.getInstance("RSA");
         this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
-
     }
 
     public void loadPublicKey(MultipartFile publicKeyFile ) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -112,7 +121,6 @@ public class CryptoLogic {
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKeyBytes);
         this.keyFactory = KeyFactory.getInstance("RSA");
         this.publicKey = this.keyFactory.generatePublic(this.x509EncodedKeySpec);
-
     }
 
     private static void copyFileUsingStream(File source, File dest) throws IOException {
@@ -132,7 +140,6 @@ public class CryptoLogic {
         }
     }
 
-
     private static File multipartToFile(MultipartFile multipart, String fileName) throws IllegalStateException, IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir")+"/"+fileName);
         multipart.transferTo(convFile);
@@ -142,8 +149,9 @@ public class CryptoLogic {
     public void encrypt(InputStream inputStream, File fOut, int fileSize) throws NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         OutputStream out = new FileOutputStream(fOut);
 
+        // Generate key for symmetric encryption
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(AES_KEY_SIZE);
+        keyGenerator.init(AES_KEY_SIZE_BITS, new SecureRandom());
         this.secretKey = keyGenerator.generateKey();
 
         // Symmetric encryption params
@@ -151,42 +159,29 @@ public class CryptoLogic {
         this.gcmParamSpec = new GCMParameterSpec(IV_SIZE * 8, this.ivBytes); // IV 96 up to 128 bits in GCM mode
         this.cipherSymmetric.init(Cipher.ENCRYPT_MODE, this.secretKey, this.gcmParamSpec);
 
-        // Asymmetric encryption params
-
         this.cipherAsymmetric.init(Cipher.ENCRYPT_MODE, this.publicKey);
 
         this.plainText = new byte[fileSize];
-        //FileInputStream inputStream = new FileInputStream(fIn);
         inputStream.read(this.plainText);
         inputStream.close();
 
         out.write(this.ivBytes);
-        //out.write(this.publicKey.getEncoded());
         byte[] encryptedSymmetricKey = this.cipherAsymmetric.doFinal(this.secretKey.getEncoded());
         ENCRYPTED_SYMMETRIC_KEY_SIZE = encryptedSymmetricKey.length;
         out.write(encryptedSymmetricKey);
         out.write(this.cipherSymmetric.doFinal(plainText));
-
-
     }
 
     public void decrypt(MultipartFile inputFile, MultipartFile inputPrivateKeyFile) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         File fIn = multipartToFile(inputFile,inputFile.getName());
         File privateKeyFile = multipartToFile(inputPrivateKeyFile,"input-private-key");
-        String finalFileName;
-        if (fIn.getName().lastIndexOf(".") == -1) {
-            finalFileName = fIn.getName();
-        } else {
-            String extension = fIn.getName().substring(fIn.getName().lastIndexOf("."));
-            finalFileName = fIn.getName() + extension;
-        }
-        File decryptedFile = new File("src/decrypted/" + finalFileName);
+
+        File decryptedFile = new File("src/decrypted/" + inputFile.getOriginalFilename());
         FileInputStream inputStream = new FileInputStream(fIn);
 
         this.privateKeyBytes = new byte[(int) privateKeyFile.length()];
         FileInputStream inPKStream = new FileInputStream(privateKeyFile);
         inPKStream.read(this.privateKeyBytes);
-
 
         // Extract IV
         this.ivBytes = new byte[IV_SIZE];
@@ -196,7 +191,7 @@ public class CryptoLogic {
         this.pkcs8KeySpec = new PKCS8EncodedKeySpec(this.privateKeyBytes);
         this.keyFactory = KeyFactory.getInstance("RSA");
         PrivateKey privateKey = this.keyFactory.generatePrivate(this.pkcs8KeySpec);
-        this.cipherAsymmetric = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+        this.cipherAsymmetric = Cipher.getInstance(RSA_OAEP);
         this.cipherAsymmetric.init(Cipher.DECRYPT_MODE, privateKey);
         this.keyBytes = new byte[ENCRYPTED_SYMMETRIC_KEY_SIZE];
         inputStream.read(this.keyBytes);
@@ -215,8 +210,6 @@ public class CryptoLogic {
         FileOutputStream out = new FileOutputStream(decryptedFile);
         out.write(this.cipherSymmetric.doFinal(this.cipherText));
         out.close();
-
-
     }
 
     private byte[] generateIVBytes() throws NoSuchAlgorithmException {

@@ -16,13 +16,13 @@
 <body>
 
 <div id="main">
-    <p>Choose file to encrypt:</p>
+    <p>Choose a file you wish to encrypt:</p>
     <div th:if="${message}">
         <h2 th:text="${message}"/>
     </div>
     <form method="POST" enctype="multipart/form-data" action="/encrypt">
         <input type="file" name="file"/>
-        <p>Please choose method:</p>
+        <p>Please choose a method:</p>
         <input id="generate" type="radio" name="encrypt-method" value="generate" checked>Generate key pair<br>
         <input id="upload-public" type="radio" name="encrypt-method" value="upload-public">Upload public key for encryption<br>
         <input id="use-generated-key" type="radio" name="encrypt-method" value="use-generated-key">Use generated public key<br>
@@ -36,12 +36,17 @@
                 <a th:href="${file}" th:text="${file}"/>
             </li>
         </ul>
-        <p>Generated public key:</p>
+        <p>Generated/Uploaded public key:</p>
         <ul>
             <li th:each="file : ${keys}">
                 <a th:href="${file}" th:text="${file}"/>
             </li>
         </ul>
+    </div>
+    <div>
+        <form action="../">
+            <input type="submit" value="Homepage" />
+        </form>
     </div>
 </div>
 <script>
