@@ -103,15 +103,20 @@ public class FileUploadController {
 
     @PostMapping("/encrypt")
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
-                                   @RequestParam("public-key-input") String publicKey,
+                                   @RequestParam("login-of-user") String login,
                                    RedirectAttributes redirectAttributes) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
-        cryptoLogic.loadPublicKey(publicKey);
-        storageService.store(file, cryptoLogic);
-
-        redirectAttributes.addFlashAttribute("message",
-                "File " + file.getOriginalFilename() + " has been encrypted successfully!");
-
+        if(userService.getUserByLogin(login)==null){
+            redirectAttributes.addFlashAttribute("message",
+                    "No " + login + " user found in database");
+        }
+        else{
+            User user =userService.getUserByLogin(login);
+            cryptoLogic.loadPublicKey(user.getPublicKey());
+            storageService.store(file, cryptoLogic);
+            redirectAttributes.addFlashAttribute("message",
+                    "File " + file.getOriginalFilename() + " has been encrypted successfully!");
+        }
         return "redirect:/encrypt";
     }
 

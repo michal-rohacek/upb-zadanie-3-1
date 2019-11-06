@@ -22,8 +22,8 @@
     </div>
     <form method="POST" enctype="multipart/form-data" action="/encrypt">
         <input type="file" name="file"/>
-
-        <input id="public-key-input" type="text" name="public-key-input" value=""><br>
+        <br>
+        Zadaj login usera, ktorému chceš zašifrovať súbor : <input id="login-of-user" type="text" name="login-of-user" value=""><br>
         <input type="submit" value="Encrypt file"/>
     </form>
     <div>
@@ -33,18 +33,27 @@
                 <a th:href="${file}" th:text="${file}"/>
             </li>
         </ul>
-        <p>Generated/Uploaded public key:</p>
-        <ul>
-            <li th:each="file : ${keys}">
-                <a th:href="${file}" th:text="${file}"/>
-            </li>
-        </ul>
     </div>
     <div>
         <form action="../">
             <input type="submit" value="Homepage" />
         </form>
     </div>
+    <table>
+        <thead>
+        <tr>
+            <th> User </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${users.empty}">
+            <td colspan="2"> No users Available </td>
+        </tr>
+        <tr th:each="user : ${users}">
+            <td><span th:text="${user.login}"> Username </span></td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 <script>
     document.getElementById("upload-public").addEventListener("click", function () {
@@ -69,22 +78,6 @@
         }
     });
 </script>
-<table>
-    <thead>
-    <tr>
-        <th> User </th>
-        <th> Public key </th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:if="${users.empty}">
-        <td colspan="2"> No users Available </td>
-    </tr>
-    <tr th:each="user : ${users}">
-        <td><span th:text="${user.login}"> Username </span></td>
-        <td><span th:text="${user.publicKey}"> Public key </span></td>
-    </tr>
-    </tbody>
-</table>
+
 </body>
 </html>
