@@ -26,8 +26,8 @@ public class RegistrationController {
     @Autowired
     private UserService userService;
 
-
-    private CryptoLogic cryptoLogic = new CryptoLogic();
+    @Autowired
+    private CryptoLogic cryptoLogic;
 
 
     public RegistrationController() throws NoSuchAlgorithmException, NoSuchPaddingException {
@@ -51,9 +51,15 @@ public class RegistrationController {
 
             return "redirect:/registration";
         } else {
-            if(userService.getUserByLogin(username) == null) {
+            if (userService.getUserByLogin(username) == null) {
+
+                if (cryptoLogic.checkPassword(password)) {
+                    return "Weak password!";
+                }
+
+                String hashed = cryptoLogic.getSaltedHash(password);
                 Keys keys = cryptoLogic.generateKeyPairForDB();
-                userService.save(new User(username, password, keys.publicKey,keys.privateKey));
+                userService.save(new User(username, hashed, keys.publicKey, keys.privateKey));
             } else {
                 //redirect to login with msg
             }
@@ -63,18 +69,20 @@ public class RegistrationController {
 
     @PostMapping("sign-user")
     public String signUser(@RequestParam("username") String username,
-                         @RequestParam("password") String password,
-                           RedirectAttributes redirectAttributes) throws InterruptedException {
-        String message;
-        User currentUser = userService.findByLoginAndAndPasswordHash(username, password);
+                           @RequestParam("password") String password,
+                           RedirectAttributes redirectAttributes) throws InvalidKeySpecException, NoSuchAlgorithmException, InterruptedException {
 
-        if(currentUser != null){
+        User user = userService.getUserByLogin(username);
+        String message;
+
+        if(user != null && cryptoLogic.comparePasswords(password, user.getPasswordHash())) {
             return "redirect:/index";
         } else {
+            message = "Incorrect password or login!";
             Thread.sleep(3000);
-            message = "Pouzivatel s nickom " + username + " nenajdeny!!";
         }
-            redirectAttributes.addFlashAttribute("message", message);
+
+        redirectAttributes.addFlashAttribute("message", message);
         return "redirect:/sign";
     }
 

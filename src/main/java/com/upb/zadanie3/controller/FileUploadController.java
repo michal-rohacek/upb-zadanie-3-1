@@ -48,7 +48,7 @@ public class FileUploadController {
 
     @GetMapping("/")
     public String mainController() {
-        return "index";
+        return "registration";
     }
 
     @GetMapping("/encrypt")
@@ -74,7 +74,7 @@ public class FileUploadController {
         return "decrypt";
     }
 
-    @GetMapping("/files/{filename:.+}")
+    @GetMapping("/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
 
@@ -117,7 +117,7 @@ public class FileUploadController {
             redirectAttributes.addFlashAttribute("message",
                     "File " + file.getOriginalFilename() + " has been encrypted successfully!");
         }
-        return "redirect:/encrypt";
+        return "redirect:./encrypt";
     }
 
     @PostMapping("/decrypt")
@@ -125,7 +125,7 @@ public class FileUploadController {
                                     @RequestParam("upload-secret") MultipartFile uploadSecretKey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
         cryptoLogic.decrypt(fileToDecrypt,uploadSecretKey);
-        return "redirect:/decrypt/"+fileToDecrypt.getOriginalFilename();
+        return "redirect:./decrypt/"+fileToDecrypt.getOriginalFilename();
     }
 
     @ExceptionHandler(StorageFileNotFoundException.class)

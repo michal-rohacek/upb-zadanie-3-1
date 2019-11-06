@@ -1,9 +1,12 @@
 package com.upb.zadanie3.security;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.file.Files;
@@ -14,13 +17,17 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-
+@Component
 public class CryptoLogic {
-    private static final int IV_SIZE = 16;
+    private static final int IV_SIZE = 12;
     private static final int AES_KEY_SIZE_BYTES = 32;
     private static final int AES_KEY_SIZE_BITS = 256;
     private static final int RSA_KEY_SIZE = 2048;
     private static int ENCRYPTED_SYMMETRIC_KEY_SIZE = 0;
+    private static final int SALT_SIZE = 8;
+    private static int NUMBER_OF_ITERATIONS = 10000;
+    private static int DESIRED_KEY_LENGTH = 512;
+    private static String HASHING_ALGORITHM = "PBKDF2WithHmacSHA512";
     private static String RSA_OAEP = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
     private static String AES_GCM = "AES/GCM/NoPadding";
 
@@ -41,6 +48,9 @@ public class CryptoLogic {
     private byte[] privateKeyBytes = new byte[RSA_KEY_SIZE];
     private byte[] cipherText;
     private byte[] plainText;
+
+    @Value("${upb.resources.files.passwords-paths}")
+    private String passwordsFilePath;
 
     public CryptoLogic() throws NoSuchPaddingException, NoSuchAlgorithmException {
         this.cipherSymmetric = Cipher.getInstance(AES_GCM);
@@ -206,5 +216,55 @@ public class CryptoLogic {
         SecureRandom secureRandom = new SecureRandom();
         secureRandom.nextBytes(ivBytes);
         return ivBytes;
+    }
+
+    public boolean checkPassword(String password) throws IOException {
+
+        FileInputStream fstream = new FileInputStream(passwordsFilePath);
+        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+        String strLine;
+        while ((strLine = br.readLine()) != null)  {
+            if(password.equals(strLine)){
+                return true;
+            }
+        }
+        fstream.close();
+        return false;
+    }
+
+    private byte[] generateSaltBytes() throws NoSuchAlgorithmException {
+        byte[] saltBytes = new byte[SALT_SIZE * 8];
+        SecureRandom secureRandom = new SecureRandom();
+        secureRandom.nextBytes(saltBytes);
+        return saltBytes;
+    }
+
+    private String hash(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        if(password == null || password.isEmpty())
+        {
+            throw new IllegalArgumentException("Empty password!");
+        }
+
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(HASHING_ALGORITHM);
+        SecretKey secretKey = secretKeyFactory.generateSecret(new PBEKeySpec(password.toCharArray(), salt, NUMBER_OF_ITERATIONS, DESIRED_KEY_LENGTH));
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    }
+
+    public String getSaltedHash(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] saltBytes = generateSaltBytes();
+        return Base64.getEncoder().encodeToString(saltBytes) + "$" + hash(password, saltBytes);
+    }
+
+    public boolean comparePasswords(String password, String stored) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        String[] saltAndHash = stored.split("\\$");
+
+        if (saltAndHash.length != 2)
+        {
+            throw new IllegalStateException("The stored password must have the form 'salt$hash'");
+        }
+
+        String hashOfInput = hash(password, Base64.getDecoder().decode(saltAndHash[0]));
+        return hashOfInput.equals(saltAndHash[1]);
     }
 }
