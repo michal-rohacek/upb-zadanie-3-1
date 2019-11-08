@@ -51,6 +51,11 @@ public class FileUploadController {
         return "registration";
     }
 
+    @GetMapping("/index")
+    public String indexController() {
+        return "index";
+    }
+
     @GetMapping("/encrypt")
     public String listUploadedFiles(Model model) throws IOException {
 
@@ -103,15 +108,15 @@ public class FileUploadController {
 
     @PostMapping("/encrypt")
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
-                                   @RequestParam("login-of-user") String login,
+                                   @RequestParam("username") String username,
                                    RedirectAttributes redirectAttributes) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
-        if(userService.getUserByLogin(login)==null){
+        if(userService.getUserByUsername(username)==null){
             redirectAttributes.addFlashAttribute("message",
-                    "No " + login + " user found in database");
+                    "No " + username + " user found in database");
         }
         else{
-            User user =userService.getUserByLogin(login);
+            User user = userService.getUserByUsername(username);
             cryptoLogic.loadPublicKey(user.getPublicKey());
             storageService.store(file, cryptoLogic);
             redirectAttributes.addFlashAttribute("message",

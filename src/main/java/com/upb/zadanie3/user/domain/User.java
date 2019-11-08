@@ -11,7 +11,7 @@ public class User {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
 
-    private String login;
+    private String username;
     private String passwordHash;
     private String publicKey;
     private String privateKey;
@@ -19,8 +19,8 @@ public class User {
     public User() {
     }
 
-    public User(String login, String passwordHash, String publicKey, String privateKey) {
-        this.login = login;
+    public User(String username, String passwordHash, String publicKey, String privateKey) {
+        this.username = username;
         this.passwordHash = passwordHash;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
@@ -34,12 +34,12 @@ public class User {
         this.privateKey = privateKey;
     }
 
-    public String getLogin() {
-        return login;
+    public String getUsername() {
+        return username;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPasswordHash() {
@@ -66,4 +66,14 @@ public class User {
         this.id = id;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", passwordHash='" + passwordHash + '\'' +
+                ", publicKey='" + publicKey + '\'' +
+                ", privateKey='" + privateKey + '\'' +
+                '}';
+    }
 }

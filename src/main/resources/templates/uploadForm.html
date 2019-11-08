@@ -23,7 +23,7 @@
     <form method="POST" enctype="multipart/form-data" action="./encrypt">
         <input type="file" name="file"/>
         <br>
-        Zadaj login usera, ktorému chceš zašifrovať súbor : <input id="login-of-user" type="text" name="login-of-user" value=""><br>
+        Zadaj login usera, ktorému chceš zašifrovať súbor : <input id="username" type="text" name="username" value=""><br>
         <input type="submit" value="Encrypt file"/>
     </form>
     <div>
@@ -50,7 +50,7 @@
             <td colspan="2"> No users Available </td>
         </tr>
         <tr th:each="user : ${users}">
-            <td><span th:text="${user.login}"> Username </span></td>
+            <td><span th:text="${user.username}"> Username </span></td>
         </tr>
         </tbody>
     </table>
@@ -79,5 +79,10 @@
     });
 </script>
 
+<div>
+    <form action="./logout">
+        <input type="submit" value="Logout" />
+    </form>
+</div>
 </body>
 </html>

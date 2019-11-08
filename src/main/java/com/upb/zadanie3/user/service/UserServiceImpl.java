@@ -20,8 +20,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserByLogin(String login) {
-        return userRepository.findByLogin(login);
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     @Override
@@ -35,8 +35,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByLoginAndAndPasswordHash(String login, String passwordHash) {
-        return userRepository.findByLoginAndAndPasswordHash(login,passwordHash);
+    public User findByUsernameAndAndPasswordHash(String username, String passwordHash) {
+        return userRepository.findByUsernameAndAndPasswordHash(username, passwordHash);
     }
 
 

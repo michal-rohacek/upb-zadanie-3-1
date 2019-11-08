@@ -8,11 +8,11 @@ public interface UserService {
 
     public List<User> getAllUsers();
 
-    public User getUserByLogin(String login);
+    public User getUserByUsername(String username);
 
     public List<String> getAllPublicKeys();
 
     public void save(User user);
 
-    public User findByLoginAndAndPasswordHash(String login,String passwordHash);
+    public User findByUsernameAndAndPasswordHash(String username, String passwordHash);
 }

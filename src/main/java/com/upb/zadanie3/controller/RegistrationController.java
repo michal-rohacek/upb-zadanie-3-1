@@ -6,6 +6,7 @@ import com.upb.zadanie3.security.Keys;
 import com.upb.zadanie3.user.domain.User;
 import com.upb.zadanie3.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,10 @@ public class RegistrationController {
 
     @GetMapping("registration")
     public String registrationForm() {
+        //TODO not working properly, iba napoly
+        if(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+            return "index";
+        }
         return "registration";
     }
 
@@ -51,7 +56,7 @@ public class RegistrationController {
 
             return "redirect:/registration";
         } else {
-            if (userService.getUserByLogin(username) == null) {
+            if (userService.getUserByUsername(username) == null) {
 
                 if (cryptoLogic.checkPassword(password)) {
                     return "Weak password!";
@@ -72,7 +77,7 @@ public class RegistrationController {
                            @RequestParam("password") String password,
                            RedirectAttributes redirectAttributes) throws InvalidKeySpecException, NoSuchAlgorithmException, InterruptedException {
 
-        User user = userService.getUserByLogin(username);
+        User user = userService.getUserByUsername(username);
         String message;
 
         if(user != null && cryptoLogic.comparePasswords(password, user.getPasswordHash())) {
