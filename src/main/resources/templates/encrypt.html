@@ -1,41 +1,44 @@
 <html xmlns:th="https://www.thymeleaf.org">
+<head th:replace="fragments/head"></head>
 <body>
+<div id="main">
+    <div th:replace="fragments/current_user"></div>
+    <div th:replace="fragments/message"></div>
+    <p>Choose a file you wish to encrypt:</p>
 
-<div th:if="${message}">
-    <h2 th:text="${message}"/>
-</div>
-
-<div th:if="${secretKey}">
-    <p>Linka na stiahnutie zasifrovaneho suboru:</p><br>
-    <a th:href="${encryptedFileLink}">Stiahnut</a><br>
-    <p> Toto je secret key, starostlivo ulozit, bude potrebny pre desifrovanie!</p><br>
-    <p th:text="${secretKey}"/><br>
-</div>
-
-<div>
     <form method="POST" enctype="multipart/form-data" action="./encrypt">
-        <table>
-            <tr><td>File to upload:</td><td><input type="file" name="file" /></td></tr>
-            <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
-        </table>
+        <input type="file" name="file"/>
+        <br>
+        Zadaj login usera, ktorému chceš zašifrovať súbor : <input id="username" type="text" name="username" value=""><br>
+        <input type="submit" value="Encrypt file"/>
     </form>
+    <div>
+        <p>List of encrypted files:</p>
+        <ul>
+            <li th:each="file : ${files}">
+                <a th:href="${file}" th:text="${file}"/>
+            </li>
+        </ul>
+    </div>
+
+    <div th:replace="fragments/nav_buttons"></div>
+
+    <table>
+        <thead>
+        <tr>
+            <th> User </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${users.empty}">
+            <td colspan="2"> No users Available </td>
+        </tr>
+        <tr th:each="user : ${users}">
+            <td><span th:text="${user.username}"> Username </span></td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
-<div>
-    <ul>
-        <li th:each="file : ${files}">
-            <a th:href="${file}" th:text="${file}" />
-        </li>
-    </ul>
-</div>
-
-<div>
-    <ul>
-        <li th:each="secretKey : ${secretKeyFiles}">
-            <a th:href="${secretKeyFile}" th:text="${secretKeyFile}" />
-        </li>
-    </ul>
-</div>
-<a href="../">Homepage</a>
 </body>
 </html>

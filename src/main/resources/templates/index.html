@@ -1,31 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="https://www.thymeleaf.org">
-<head>
-    <style>
-        body {
-            background: #e6ffe6;
-        }
-
-        #main {
-            width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 3px;
-        }
-    </style>
-</head>
+<head th:replace="fragments/head"></head>
 <body>
 <div id="main">
-<!--    <div></div><span th:text="${#authentication.getPrincipal().getUsername()}"></span>-->
-
+    <div th:replace="fragments/current_user"></div>
     <a href="./encrypt">ENCRYPT</a><br><br>
     <a href="./decrypt">DECRYPT</a><br><br>
     <form action="./decrypt/decApp">
         <input type="submit" value="Download application" />
     </form>
-    <form action="./logout">
-        <input type="submit" value="Logout" />
-    </form>
+    <div th:replace="fragments/nav_buttons"></div>
 </div>
 </body>
 </html>

@@ -1,32 +1,16 @@
 <html xmlns:th="https://www.thymeleaf.org">
-<head>
-    <style>
-        body {
-            background: #e6ffe6;
-        }
-
-        #main {
-            width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 3px;
-        }
-    </style>
-</head>
+<head th:replace="fragments/head"></head>
 <body>
 
 <div id="main">
+    <div th:replace="fragments/current_user"></div>
     <form method="POST" enctype="multipart/form-data" action="./decrypt">
         <input id="file-to-decrypt" type="file" name="file-to-decrypt"  checked>File to decrypt<br>
         <input id="upload-secret" type="file" name="upload-secret">Secret key<br>
         <input type="submit" value="Decrypt file"/>
     </form>
-    <form action="../">
-        <input type="submit" value="Homepage" />
-    </form>
-    <form action="./logout">
-        <input type="submit" value="Logout" />
-    </form>
+
+    <div th:replace="fragments/nav_buttons"></div>
 </div>
 </body>
 </html>
