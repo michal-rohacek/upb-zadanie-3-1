@@ -7,12 +7,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 @EnableWebSecurity
@@ -23,29 +19,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new UserDetailsServiceImpl();
     };
 
-    //TODO
-    //tuto treba asi integrovat ten password hashing a tie veci okolo, do nejakej classy co implementuje PasswordEncoder
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public PasswordEncoder getPasswordEncoder() {
         return new NajlepsiNaCelejFEIkePasswordEncoder();
     }
 
     @Bean
-    public AuthenticationFailureHandler authenticationFailureHandler() {
+    public AuthenticationFailureHandler getAuthenticationFailureHandler() {
         return new DelayedAuthenticationFailureHandler();
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider getAuthenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService());
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(getPasswordEncoder());
         return authProvider;
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider());
+        auth.authenticationProvider(getAuthenticationProvider());
     }
 
     @Override
@@ -54,17 +48,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/registration").permitAll()
                 .antMatchers("/create-user").permitAll()
+                .antMatchers( "/public/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/sign").permitAll()
                 .loginProcessingUrl("/sign-user")
                 .defaultSuccessUrl("/index",true)
-                .failureHandler(authenticationFailureHandler())
-//                .failureUrl("/sign.html?error=true")
+                .failureHandler(getAuthenticationFailureHandler())
 
                 //these options are required to access H2 Console
                 .and().headers().frameOptions().disable()
                 .and().csrf().disable()
+
                 .logout();
 
     }

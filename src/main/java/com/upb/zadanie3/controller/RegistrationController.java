@@ -39,9 +39,7 @@ public class RegistrationController {
 
     //TODO nefunguje zobrazovanie error hlasky v pripade zleho loginu
     @GetMapping("sign")
-    public String signForm(@RequestParam(value = "error", required = false, defaultValue = "false") boolean error, Model model) {
-        if(error) model.addAttribute("error", true);
-
+    public String signForm() {
         return isUserLoggedIn() ? "index" : "sign";
     }
 
@@ -63,26 +61,29 @@ public class RegistrationController {
             Keys keys = cryptoLogic.generateKeyPairForDB();
             userService.save(new User(username, hashed, keys.publicKey, keys.privateKey));
         }
-        attributes.addFlashAttribute("signupMessage", "User registered successfully.");
-        return "redirect:/registration";
+        attributes.addFlashAttribute("message", "User registered successfully.");
+        return "redirect:/sign";
     }
 
     @PostMapping("sign-user")
     public String signUser(@RequestParam("username") String username,
                            @RequestParam("password") String password,
                            RedirectAttributes redirectAttributes) throws InvalidKeySpecException, NoSuchAlgorithmException, InterruptedException {
-
+        System.out.println("ENTERING REG CONTEOLLER POST SIGN USER");
         User user = userService.getUserByUsername(username);
+        System.out.println("user got: " + user);
         String message;
 
         if(user != null && cryptoLogic.comparePasswords(password, user.getPasswordHash())) {
+            System.out.println("inside first if");
             return "redirect:/index";
         } else {
+            System.out.println("inside else");
             message = "Incorrect password or login!";
             Thread.sleep(5000);
             System.out.println("SPIM LEBO SI ZADAL ZLE HESLOOOOOOOOOO");
             redirectAttributes.addFlashAttribute("message", message);
-            return "redirect:/sign.html?error=true";
+            return "redirect:/sign";
         }
     }
 

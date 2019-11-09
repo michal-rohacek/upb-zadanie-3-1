@@ -20,11 +20,9 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.ExemptionMechanismException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -68,7 +66,7 @@ public class FileUploadController {
                 .collect(Collectors.toList()));
 
         model.addAttribute("users", userService.getAllUsers());
-        return "uploadForm";
+        return "encrypt";
     }
 
     @GetMapping("/decrypt")
