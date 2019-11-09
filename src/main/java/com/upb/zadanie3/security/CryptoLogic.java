@@ -218,7 +218,7 @@ public class CryptoLogic {
         return ivBytes;
     }
 
-    public boolean checkPassword(String password) throws IOException {
+    public boolean dictionaryContainsPassword(String password) throws IOException {
 
         FileInputStream fstream = new FileInputStream(passwordsFilePath);
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));

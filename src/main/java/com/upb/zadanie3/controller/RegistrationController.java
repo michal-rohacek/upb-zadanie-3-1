@@ -1,11 +1,11 @@
 package com.upb.zadanie3.controller;
 
-import antlr.collections.impl.IntRange;
 import com.upb.zadanie3.security.CryptoLogic;
 import com.upb.zadanie3.security.Keys;
 import com.upb.zadanie3.user.domain.User;
 import com.upb.zadanie3.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,10 +16,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.stream.IntStream;
 
 @Controller
 public class RegistrationController {
@@ -36,39 +34,36 @@ public class RegistrationController {
 
     @GetMapping("registration")
     public String registrationForm() {
-        //TODO not working properly, iba napoly
-        if(SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
-            return "index";
-        }
-        return "registration";
+        return isUserLoggedIn() ? "index" : "registration";
     }
 
+    //TODO nefunguje zobrazovanie error hlasky v pripade zleho loginu
     @GetMapping("sign")
-    public String signForm() {
-        return "sign";
+    public String signForm(@RequestParam(value = "error", required = false, defaultValue = "false") boolean error, Model model) {
+        if(error) model.addAttribute("error", true);
+
+        return isUserLoggedIn() ? "index" : "sign";
     }
 
     @PostMapping("create-user")
     public String registerUser(@RequestParam("username") String username,
                              @RequestParam("password") String password,
-                             @RequestParam("password-repeat") String passwordRepeat) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException {
+                             @RequestParam("password-repeat") String passwordRepeat,
+                               RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException {
         if(!password.equals(passwordRepeat)) {
-
+            attributes.addFlashAttribute("signupMessage", "PASSWORDS DO NOT EQUAL!");
             return "redirect:/registration";
         } else {
-            if (userService.getUserByUsername(username) == null) {
-
-                if (cryptoLogic.checkPassword(password)) {
-                    return "Weak password!";
-                }
-
-                String hashed = cryptoLogic.getSaltedHash(password);
-                Keys keys = cryptoLogic.generateKeyPairForDB();
-                userService.save(new User(username, hashed, keys.publicKey, keys.privateKey));
-            } else {
-                //redirect to login with msg
+            if (cryptoLogic.dictionaryContainsPassword(password)) {
+                attributes.addFlashAttribute("signupMessage", "WEAK PASSWORD!");
+                return "redirect:/registration";
             }
+
+            String hashed = cryptoLogic.getSaltedHash(password);
+            Keys keys = cryptoLogic.generateKeyPairForDB();
+            userService.save(new User(username, hashed, keys.publicKey, keys.privateKey));
         }
+        attributes.addFlashAttribute("signupMessage", "User registered successfully.");
         return "redirect:/registration";
     }
 
@@ -84,11 +79,14 @@ public class RegistrationController {
             return "redirect:/index";
         } else {
             message = "Incorrect password or login!";
-            Thread.sleep(3000);
+            Thread.sleep(5000);
+            System.out.println("SPIM LEBO SI ZADAL ZLE HESLOOOOOOOOOO");
+            redirectAttributes.addFlashAttribute("message", message);
+            return "redirect:/sign.html?error=true";
         }
-
-        redirectAttributes.addFlashAttribute("message", message);
-        return "redirect:/sign";
     }
 
+    private boolean isUserLoggedIn() {
+        return !(SecurityContextHolder.getContext().getAuthentication() instanceof AnonymousAuthenticationToken);
+    }
 }

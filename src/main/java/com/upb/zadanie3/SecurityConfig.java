@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -26,7 +27,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     //tuto treba asi integrovat ten password hashing a tie veci okolo, do nejakej classy co implementuje PasswordEncoder
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new NoPasswordEncoder();
+        return new NajlepsiNaCelejFEIkePasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return new DelayedAuthenticationFailureHandler();
     }
 
     @Bean
@@ -47,12 +53,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/registration").permitAll()
+                .antMatchers("/create-user").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
+                .loginPage("/sign").permitAll()
+                .loginProcessingUrl("/sign-user")
+                .defaultSuccessUrl("/index",true)
+                .failureHandler(authenticationFailureHandler())
+//                .failureUrl("/sign.html?error=true")
 
                 //these options are required to access H2 Console
                 .and().headers().frameOptions().disable()
                 .and().csrf().disable()
                 .logout();
+
     }
 }
