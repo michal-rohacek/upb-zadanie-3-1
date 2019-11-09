@@ -16,7 +16,7 @@ public class DelayedAuthenticationFailureHandler extends SimpleUrlAuthentication
         super.onAuthenticationFailure(request, response, exception);
         //TODO change millis value to expected delay after failed login attempt
         try {
-            Thread.sleep(0);
+            Thread.sleep(5000);
             System.out.println("BAD CRDENTIALS!");
         } catch (InterruptedException e) {
             e.printStackTrace();
