@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,8 +44,8 @@ public class RegistrationController {
 
     @PostMapping("create-user")
     public String registerUser(@RequestParam("username") String username,
-                             @RequestParam("password") String password,
-                             @RequestParam("password-repeat") String passwordRepeat,
+                               @RequestParam("password") String password,
+                               @RequestParam("password-repeat") String passwordRepeat,
                                RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException {
         if(userService.getUserByUsername(username) != null) {
             attributes.addFlashAttribute("message", "User with username " + username + " already exists!");
@@ -54,7 +55,7 @@ public class RegistrationController {
             attributes.addFlashAttribute("message", "PASSWORDS DO NOT EQUAL!");
             return "redirect:/registration";
         } else {
-            if (cryptoLogic.dictionaryContainsPassword(password)) {
+            if (cryptoLogic.dictionaryContainsPassword(password) || cryptoLogic.isPasswordInsecure(password)) {
                 attributes.addFlashAttribute("message", "WEAK PASSWORD!");
                 return "redirect:/registration";
             }

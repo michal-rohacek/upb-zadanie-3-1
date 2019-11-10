@@ -48,6 +48,7 @@ public class CryptoLogic {
     private byte[] privateKeyBytes = new byte[RSA_KEY_SIZE];
     private byte[] cipherText;
     private byte[] plainText;
+    private final String regex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-.<>/~+]).{8,}$";
 
     @Value("${upb.resources.files.passwords-paths}")
     private String passwordsFilePath;
@@ -268,5 +269,9 @@ public class CryptoLogic {
 
         String hashOfInput = hash(password, Base64.getDecoder().decode(saltAndHash[0]));
         return hashOfInput.equals(saltAndHash[1]);
+    }
+
+    public boolean isPasswordInsecure(String password) {
+        return !password.matches(this.regex);
     }
 }

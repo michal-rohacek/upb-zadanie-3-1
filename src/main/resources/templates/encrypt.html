@@ -7,10 +7,10 @@
     <p>Choose a file you wish to encrypt:</p>
 
     <form method="POST" enctype="multipart/form-data" action="./encrypt">
-        <input type="file" name="file"/>
+        <input id="file-upload" name="file" type="file"/>
         <br>
         Zadaj login usera, ktorému chceš zašifrovať súbor : <input id="username" type="text" name="username" value=""><br>
-        <input type="submit" value="Encrypt file"/>
+        <input class="customButton" type="submit" value="Encrypt file"/>
     </form>
     <div>
         <p>List of encrypted files:</p>
@@ -22,20 +22,7 @@
     </div>
 
     <div th:replace="fragments/nav_buttons"></div>
-
-    <table>
-        <p>Registered users</p>
-        <thead>
-        <tr>
-            <th>Login</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user : ${users}">
-            <td><span th:text="${user.username}"> Username </span></td>
-        </tr>
-        </tbody>
-    </table>
+    <div th:replace="fragments/footer"></div>
 </div>
 
 </body>
