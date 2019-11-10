@@ -10,9 +10,6 @@ public interface UserService {
 
     public User getUserByUsername(String username);
 
-    public List<String> getAllPublicKeys();
-
     public void save(User user);
 
-    public User findByUsernameAndAndPasswordHash(String username, String passwordHash);
 }

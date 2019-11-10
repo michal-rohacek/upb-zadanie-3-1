@@ -25,19 +25,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<String> getAllPublicKeys() {
-        return Collections.emptyList();
-    }
-
-    @Override
     public void save(User user) {
         userRepository.save(user);
     }
-
-    @Override
-    public User findByUsernameAndAndPasswordHash(String username, String passwordHash) {
-        return userRepository.findByUsernameAndAndPasswordHash(username, passwordHash);
-    }
-
 
 }
