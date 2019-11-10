@@ -13,7 +13,9 @@ public class User {
 
     private String username;
     private String passwordHash;
+    @Column(length = 5000)
     private String publicKey;
+    @Column(length = 5000)
     private String privateKey;
 
     public User() {
