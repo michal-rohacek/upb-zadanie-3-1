@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,6 +46,10 @@ public class RegistrationController {
                              @RequestParam("password") String password,
                              @RequestParam("password-repeat") String passwordRepeat,
                                RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException {
+        if(userService.getUserByUsername(username) != null) {
+            attributes.addFlashAttribute("message", "User with username " + username + " already exists!");
+            return "redirect:/registration";
+        }
         if(!password.equals(passwordRepeat)) {
             attributes.addFlashAttribute("message", "PASSWORDS DO NOT EQUAL!");
             return "redirect:/registration";
@@ -78,6 +81,12 @@ public class RegistrationController {
             redirectAttributes.addFlashAttribute("message", "Incorrect login or password!");
             return "redirect:/sign";
         }
+    }
+
+    @GetMapping("sign-error")
+    public String signError(RedirectAttributes attributes) {
+        attributes.addFlashAttribute("message", "Login not successful!");
+        return "redirect:/sign";
     }
 
     private boolean isUserLoggedIn() {
