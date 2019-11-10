@@ -1,3 +1,5 @@
 <div th:if="${message}" xmlns:th="https://www.thymeleaf.org">
-    <h2 th:text="${message}"/>
+    <div class="alert alert-danger" role="alert">
+        <h4 th:text="${message}" class="alert-heading"></h4>
+    </div>
 </div>
