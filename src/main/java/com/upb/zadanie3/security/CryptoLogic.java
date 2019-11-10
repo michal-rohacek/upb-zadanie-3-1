@@ -257,6 +257,8 @@ public class CryptoLogic {
     }
 
     public boolean comparePasswords(String password, String stored) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        if(stored == null) return false;
+
         String[] saltAndHash = stored.split("\\$");
 
         if (saltAndHash.length != 2)

@@ -14,10 +14,8 @@ public class DelayedAuthenticationFailureHandler extends SimpleUrlAuthentication
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         super.onAuthenticationFailure(request, response, exception);
-        //TODO change millis value to expected delay after failed login attempt
         try {
             Thread.sleep(5000);
-            System.out.println("BAD CRDENTIALS!");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
