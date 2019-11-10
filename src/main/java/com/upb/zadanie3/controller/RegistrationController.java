@@ -37,7 +37,6 @@ public class RegistrationController {
         return isUserLoggedIn() ? "index" : "registration";
     }
 
-    //TODO nefunguje zobrazovanie error hlasky v pripade zleho loginu
     @GetMapping("sign")
     public String signForm() {
         return isUserLoggedIn() ? "index" : "sign";
@@ -49,11 +48,11 @@ public class RegistrationController {
                              @RequestParam("password-repeat") String passwordRepeat,
                                RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException {
         if(!password.equals(passwordRepeat)) {
-            attributes.addFlashAttribute("signupMessage", "PASSWORDS DO NOT EQUAL!");
+            attributes.addFlashAttribute("message", "PASSWORDS DO NOT EQUAL!");
             return "redirect:/registration";
         } else {
             if (cryptoLogic.dictionaryContainsPassword(password)) {
-                attributes.addFlashAttribute("signupMessage", "WEAK PASSWORD!");
+                attributes.addFlashAttribute("message", "WEAK PASSWORD!");
                 return "redirect:/registration";
             }
 
@@ -69,20 +68,14 @@ public class RegistrationController {
     public String signUser(@RequestParam("username") String username,
                            @RequestParam("password") String password,
                            RedirectAttributes redirectAttributes) throws InvalidKeySpecException, NoSuchAlgorithmException, InterruptedException {
-        System.out.println("ENTERING REG CONTEOLLER POST SIGN USER");
-        User user = userService.getUserByUsername(username);
-        System.out.println("user got: " + user);
-        String message;
 
+        User user = userService.getUserByUsername(username);
         if(user != null && cryptoLogic.comparePasswords(password, user.getPasswordHash())) {
-            System.out.println("inside first if");
+            redirectAttributes.addFlashAttribute("message", "User signed in successfully.");
             return "redirect:/index";
         } else {
-            System.out.println("inside else");
-            message = "Incorrect password or login!";
             Thread.sleep(5000);
-            System.out.println("SPIM LEBO SI ZADAL ZLE HESLOOOOOOOOOO");
-            redirectAttributes.addFlashAttribute("message", message);
+            redirectAttributes.addFlashAttribute("message", "Incorrect login or password!");
             return "redirect:/sign";
         }
     }

@@ -24,15 +24,13 @@
     <div th:replace="fragments/nav_buttons"></div>
 
     <table>
+        <p>Registered users</p>
         <thead>
         <tr>
-            <th> User </th>
+            <th>Login</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:if="${users.empty}">
-            <td colspan="2"> No users Available </td>
-        </tr>
         <tr th:each="user : ${users}">
             <td><span th:text="${user.username}"> Username </span></td>
         </tr>
