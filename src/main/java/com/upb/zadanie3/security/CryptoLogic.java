@@ -1,6 +1,13 @@
 package com.upb.zadanie3.security;
 
+import com.upb.zadanie3.user.domain.User;
+import com.upb.zadanie3.user.domain.UserPrincipal;
+import com.upb.zadanie3.user.domain.UserRepository;
+import com.upb.zadanie3.user.service.UserService;
+import com.upb.zadanie3.user.service.UserServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +30,7 @@ public class CryptoLogic {
     private static final int AES_KEY_SIZE_BYTES = 32;
     private static final int AES_KEY_SIZE_BITS = 256;
     private static final int RSA_KEY_SIZE = 2048;
-    private static int ENCRYPTED_SYMMETRIC_KEY_SIZE = 0;
+    private static int ENCRYPTED_SYMMETRIC_KEY_SIZE = 256;
     private static final int SALT_SIZE = 8;
     private static int NUMBER_OF_ITERATIONS = 10000;
     private static int DESIRED_KEY_LENGTH = 512;
@@ -52,6 +59,8 @@ public class CryptoLogic {
 
     @Value("${upb.resources.files.passwords-paths}")
     private String passwordsFilePath;
+
+
 
     public CryptoLogic() throws NoSuchPaddingException, NoSuchAlgorithmException {
         this.cipherSymmetric = Cipher.getInstance(AES_GCM);
@@ -172,16 +181,18 @@ public class CryptoLogic {
         out.write(this.cipherSymmetric.doFinal(plainText));
     }
 
-    public void decrypt(MultipartFile inputFile, MultipartFile inputPrivateKeyFile) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
-        File fIn = multipartToFile(inputFile,inputFile.getName());
-        File privateKeyFile = multipartToFile(inputPrivateKeyFile,"input-private-key");
+    public void decrypt(MultipartFile inputFile, UserService userService) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((UserPrincipal) principal).getUsername();
+        User logedUser = userService.getUserByUsername(userId);
 
+        File fIn = multipartToFile(inputFile,inputFile.getName());
         File decryptedFile = new File("src/decrypted/" + inputFile.getOriginalFilename());
         FileInputStream inputStream = new FileInputStream(fIn);
 
-        this.privateKeyBytes = new byte[(int) privateKeyFile.length()];
-        FileInputStream inPKStream = new FileInputStream(privateKeyFile);
-        inPKStream.read(this.privateKeyBytes);
+        this.privateKeyBytes = Base64.getDecoder().decode(logedUser.getPrivateKey());
+        this.x509EncodedKeySpec = new X509EncodedKeySpec(this.privateKeyBytes);
+
 
         // Extract IV
         this.ivBytes = new byte[IV_SIZE];

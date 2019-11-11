@@ -5,6 +5,7 @@ import com.upb.zadanie3.storage.LocationConfig;
 import com.upb.zadanie3.storage.StorageFileNotFoundException;
 import com.upb.zadanie3.storage.StorageService;
 import com.upb.zadanie3.user.domain.User;
+import com.upb.zadanie3.user.domain.UserPrincipal;
 import com.upb.zadanie3.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -12,6 +13,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +27,9 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,10 +125,10 @@ public class FileUploadController {
     }
 
     @PostMapping("/decrypt")
-    public String handleDecryptFile(@RequestParam("file-to-decrypt") MultipartFile fileToDecrypt,
-                                    @RequestParam("upload-secret") MultipartFile uploadSecretKey) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+    public String handleDecryptFile(@RequestParam("file-to-decrypt") MultipartFile fileToDecrypt
+                                    ) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
-        cryptoLogic.decrypt(fileToDecrypt,uploadSecretKey);
+        cryptoLogic.decrypt(fileToDecrypt,userService);
         return "redirect:./decrypt/"+fileToDecrypt.getOriginalFilename();
     }
 
@@ -137,8 +141,18 @@ public class FileUploadController {
     public ResponseEntity<Resource> downloadApp() throws IOException {
         File outputFile =  new File("src/app/DecryptApplication.zip");
 
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((UserPrincipal) principal).getUsername();
+        User logedUser = userService.getUserByUsername(userId);
+        byte[] privateKeyBytes = Base64.getDecoder().decode(logedUser.getPrivateKey());
+
         File jar = new File("src/app/DecryptApplication.jar");
         File key = new File("src/keys/private.key");
+
+        FileOutputStream outputStream = new FileOutputStream(key);
+        outputStream.write(privateKeyBytes);
+        outputStream.close();
+
         List<File> files = new ArrayList<>();
         Collections.addAll(files, jar, key);
 
