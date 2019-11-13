@@ -7,7 +7,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-public class NajlepsiNaCelejFEIkePasswordEncoder implements PasswordEncoder {
+public class CryptologicPasswordEncoder implements PasswordEncoder {
 
     @Override
     public String encode(CharSequence charSequence) {
