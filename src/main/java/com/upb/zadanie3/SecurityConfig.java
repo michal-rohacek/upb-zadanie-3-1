@@ -21,7 +21,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder getPasswordEncoder() {
-        return new NajlepsiNaCelejFEIkePasswordEncoder();
+        return new CryptologicPasswordEncoder();
     }
 
     @Bean

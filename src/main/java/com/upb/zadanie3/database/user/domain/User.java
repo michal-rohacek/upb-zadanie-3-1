@@ -16,14 +16,17 @@ public class User {
     private Integer id;
 
     private String username;
+
     @Column(length = 2000)
     private String passwordHash;
+
     @Column(length = 5000)
     private String publicKey;
+
     @Column(length = 5000)
     private String privateKey;
 
-    @OneToMany(mappedBy = "userCreator")
+    @OneToMany(mappedBy = "recipientUser")
     private List<EncryptedFile> encryptedFile;
 
     @OneToMany(mappedBy = "userCreator")
