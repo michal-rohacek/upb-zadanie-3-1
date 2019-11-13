@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface IFileRepository extends JpaRepository<EncryptedFile, Integer> {
 
+    EncryptedFile findEncryptedFileById(Integer id);
+
     List<EncryptedFile> findAll();
 
     List<EncryptedFile> getAllByRecipientUser(User recipientUser);

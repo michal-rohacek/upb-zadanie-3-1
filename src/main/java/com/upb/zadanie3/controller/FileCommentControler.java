@@ -3,6 +3,7 @@ package com.upb.zadanie3.controller;
 
 import com.upb.zadanie3.FileDto;
 import com.upb.zadanie3.database.comment.domain.Comment;
+import com.upb.zadanie3.database.comment.domain.CommentRepository;
 import com.upb.zadanie3.database.file.domain.EncryptedFile;
 import com.upb.zadanie3.database.file.domain.IFileRepository;
 import com.upb.zadanie3.database.user.domain.User;
@@ -38,9 +39,12 @@ public class FileCommentControler {
     @Autowired
     private IFileRepository fileRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     @GetMapping("/seeAllFiles")
     public String listUploadedFiles(Model model) throws IOException {
-        model.addAttribute("files", getFilenamesFilteredBy(x -> true));
+        model.addAttribute("fileDtos", getDTOsFromFilenames(getFilenamesFilteredBy(x -> true)));
 
         return "viewFiles";
     }
@@ -67,6 +71,7 @@ public class FileCommentControler {
         for(String filename : filenames) {
             EncryptedFile file = fileRepository.findEncryptedFilesByFileName(filename);
             FileDto dto = new FileDto();
+            dto.id = file.getId();
             dto.fileLink = getURI(filename);
             for(Comment comment : file.getComments()) {
                 dto.comments.add(comment.getComment());
@@ -84,6 +89,18 @@ public class FileCommentControler {
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 
+    @PostMapping("/addComment")
+    public String addComment(@RequestParam("fileId") Integer fileId, @RequestParam("comment") String comment) {
+        EncryptedFile file = fileRepository.findEncryptedFileById(fileId);
+        Comment com = new Comment();
+        com.setComment(comment);
+        com.setEncryptedFile(file);
+        com.setUserCreator(getCurrentUser());
+        file.getComments().add(com);
+        fileRepository.save(file);
+        commentRepository.save(com);
+        return "redirect:./index";
+    }
 
     private String getCurrentUsername() {
         UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

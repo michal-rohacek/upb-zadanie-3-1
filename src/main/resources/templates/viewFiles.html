@@ -18,6 +18,12 @@
                         <p th:text="${comment}"></p>
                     </li>
                 </ul>
+                <form action="/addComment" method="post">
+                    Add comment:
+                    <input type="text" name="comment" value="Type here...">
+                    <input type="hidden" name="fileId" th:value="${fileDto.id}">
+                    <input type="submit" value="Submit">
+                </form>
 
 
         </ul>
