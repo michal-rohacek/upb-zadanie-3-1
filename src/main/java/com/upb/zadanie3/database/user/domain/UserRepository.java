@@ -8,7 +8,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findByUsername(String username);
 
-    User findByUsernameAndAndPasswordHash(String username, String passwordHash);
+    User findByUsernameAndPasswordHash(String username, String passwordHash);
 
     List<User> findAll();
 
