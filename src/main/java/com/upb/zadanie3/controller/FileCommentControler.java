@@ -42,6 +42,11 @@ public class FileCommentControler {
     @Autowired
     private CommentRepository commentRepository;
 
+    @GetMapping("/search")
+    public String getSearchPage() throws IOException {
+        return "search";
+    }
+
     @GetMapping("/seeAllFiles")
     public String listUploadedFiles(Model model) throws IOException {
         model.addAttribute("fileDtos", getDTOsFromFilenames(getFilenamesFilteredBy(x -> true)));
@@ -58,6 +63,17 @@ public class FileCommentControler {
 
         return "viewFiles";
     }
+
+    @PostMapping("/seeFilteredFiles")
+    public String listFilteredFiles(@RequestParam("search") String search, Model model) throws IOException {
+        List<EncryptedFile> foundFiles = findFilesContaining(search);
+        List<String> filenames = getFilenamesFilteredBy(filename -> foundFiles.stream().map(EncryptedFile::getFileName).anyMatch(filename::equals));
+
+        model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
+
+        return "viewFiles";
+    }
+
 
     private List<String> getFilenamesFilteredBy(Predicate<String> filePredicate) {
         return fileRepository.findAll().stream()
@@ -125,5 +141,20 @@ public class FileCommentControler {
 
     private String getURI(String filename) {
         return MvcUriComponentsBuilder.fromMethodName(FileCommentControler.class,"serveFileComment", filename).build().toString();
+    }
+
+    private List<EncryptedFile> findFilesContaining(String search) {
+        List<EncryptedFile> allFiles = fileRepository.findAll();
+        List<EncryptedFile> result = new ArrayList<>();
+        for(EncryptedFile file: allFiles) {
+            for(Comment comment : file.getComments()) {
+                if(comment.getComment() != null && comment.getComment().contains(search))
+                    result.add(file);
+            }
+            if (file.getFileName().contains(search)) {
+                result.add(file);
+            }
+         }
+        return result;
     }
 }
