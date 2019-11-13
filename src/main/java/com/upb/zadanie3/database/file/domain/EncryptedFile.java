@@ -16,7 +16,7 @@ public class EncryptedFile {
     private String fileName;
 
     @OneToMany(mappedBy="encryptedFile")
-    private List<Comment> coments;
+    private List<Comment> comments;
 
     @ManyToOne
     private User recipientUser;
@@ -48,11 +48,11 @@ public class EncryptedFile {
         this.fileName = fileName;
     }
 
-    public List<Comment> getComents() {
-        return coments;
+    public List<Comment> getComments() {
+        return comments;
     }
 
-    public void setComents(List<Comment> coments) {
-        this.coments = coments;
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }

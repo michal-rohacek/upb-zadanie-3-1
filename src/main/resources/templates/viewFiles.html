@@ -4,18 +4,22 @@
 
 <div id="main">
     <div th:replace="fragments/current_user"></div>
-    <div th:replace="fragments/message"></div>
+<!--    <div th:replace="fragments/message"></div>-->
     <p>Choose a file you wish see details:</p>
 
     <div>
         <p>List of encrypted files:</p>
         <ul>
-            <li th:each="file : ${files}">
-                <a th:href="${file}" th:text="${file}"/>
-                <form method="POST" enctype="multipart/form-data" action="./comment">
-                    <input type="text" th:name="${file}" th:id="${file}">
-                </form>
-            </li>
+            <li th:each="fileDto : ${fileDtos}">
+                <a th:href="${fileDto.fileLink}" th:text="${fileDto.fileLink}"/>
+
+                <ul>
+                    <li th:each="comment: ${fileDto.comments}">
+                        <p th:text="${comment}"></p>
+                    </li>
+                </ul>
+
+
         </ul>
     </div>
 
