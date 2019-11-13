@@ -1,6 +1,7 @@
 <html xmlns:th="https://www.thymeleaf.org">
 <head th:replace="fragments/head"></head>
 <body>
+
 <div id="main">
     <div th:replace="fragments/current_user"></div>
     <div th:replace="fragments/message"></div>
@@ -9,21 +10,16 @@
     <form method="POST" enctype="multipart/form-data" action="./encrypt">
         <input id="file-upload" name="file" type="file"/>
         <br>
-        Zadaj login usera, ktorému chceš zašifrovať súbor : <input id="username" type="text" name="username" value=""><br>
+        Zadaj login usera, ktorému chceš zašifrovať súbor:
+        <select name="username" class="custom-select">
+            <option th:each="user : ${users}" th:value="${user}" th:text="${user}">
+            </option>
+        </select>
         <input class="customButton" type="submit" value="Encrypt file"/>
     </form>
-    <div>
-        <p>List of encrypted files:</p>
-        <ul>
-            <li th:each="file : ${files}">
-                <a th:href="${file}" th:text="${file}"/>
-            </li>
-        </ul>
-    </div>
 
     <div th:replace="fragments/nav_buttons"></div>
     <div th:replace="fragments/footer"></div>
 </div>
-
 </body>
 </html>

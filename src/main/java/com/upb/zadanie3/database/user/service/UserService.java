@@ -1,6 +1,6 @@
-package com.upb.zadanie3.user.service;
+package com.upb.zadanie3.database.user.service;
 
-import com.upb.zadanie3.user.domain.User;
+import com.upb.zadanie3.database.user.domain.User;
 
 import java.util.List;
 

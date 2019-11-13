@@ -1,6 +1,6 @@
 package com.upb.zadanie3;
 
-import com.upb.zadanie3.user.service.UserDetailsServiceImpl;
+import com.upb.zadanie3.database.user.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;

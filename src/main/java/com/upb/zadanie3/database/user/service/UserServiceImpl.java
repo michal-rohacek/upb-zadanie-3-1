@@ -1,11 +1,10 @@
-package com.upb.zadanie3.user.service;
+package com.upb.zadanie3.database.user.service;
 
-import com.upb.zadanie3.user.domain.User;
-import com.upb.zadanie3.user.domain.UserRepository;
+import com.upb.zadanie3.database.user.domain.User;
+import com.upb.zadanie3.database.user.domain.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service

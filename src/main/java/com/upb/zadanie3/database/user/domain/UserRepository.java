@@ -1,4 +1,4 @@
-package com.upb.zadanie3.user.domain;
+package com.upb.zadanie3.database.user.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

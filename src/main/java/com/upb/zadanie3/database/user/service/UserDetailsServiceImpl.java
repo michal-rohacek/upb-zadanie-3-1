@@ -1,18 +1,14 @@
-package com.upb.zadanie3.user.service;
+package com.upb.zadanie3.database.user.service;
 
-import com.upb.zadanie3.user.domain.User;
-import com.upb.zadanie3.user.domain.UserPrincipal;
-import com.upb.zadanie3.user.domain.UserRepository;
+import com.upb.zadanie3.database.user.domain.User;
+import com.upb.zadanie3.database.user.domain.UserPrincipal;
+import com.upb.zadanie3.database.user.domain.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
 
 public class UserDetailsServiceImpl implements UserDetailsService {
 
@@ -33,7 +29,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
         return new UserPrincipal(foundUser);
     }
-
-
 
 }

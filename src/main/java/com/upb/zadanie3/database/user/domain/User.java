@@ -1,7 +1,11 @@
-package com.upb.zadanie3.user.domain;
+package com.upb.zadanie3.database.user.domain;
 
+
+import com.upb.zadanie3.database.comment.domain.Comment;
+import com.upb.zadanie3.database.file.domain.EncryptedFile;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "USERS")
@@ -12,11 +16,18 @@ public class User {
     private Integer id;
 
     private String username;
+    @Column(length = 2000)
     private String passwordHash;
     @Column(length = 5000)
     private String publicKey;
     @Column(length = 5000)
     private String privateKey;
+
+    @OneToMany(mappedBy = "userCreator")
+    private List<EncryptedFile> encryptedFile;
+
+    @OneToMany(mappedBy = "userCreator")
+    private List<Comment> comments;
 
     public User() {
     }
@@ -66,6 +77,22 @@ public class User {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public List<EncryptedFile> getEncryptedFile() {
+        return encryptedFile;
+    }
+
+    public void setEncryptedFile(List<EncryptedFile> encryptedFile) {
+        this.encryptedFile = encryptedFile;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
     @Override

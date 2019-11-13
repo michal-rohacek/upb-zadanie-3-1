@@ -1,11 +1,8 @@
 package com.upb.zadanie3.security;
 
-import com.upb.zadanie3.user.domain.User;
-import com.upb.zadanie3.user.domain.UserPrincipal;
-import com.upb.zadanie3.user.domain.UserRepository;
-import com.upb.zadanie3.user.service.UserService;
-import com.upb.zadanie3.user.service.UserServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.upb.zadanie3.database.user.domain.User;
+import com.upb.zadanie3.database.user.domain.UserPrincipal;
+import com.upb.zadanie3.database.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

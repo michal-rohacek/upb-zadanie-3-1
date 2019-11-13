@@ -1,0 +1,26 @@
+<html xmlns:th="https://www.thymeleaf.org">
+<head th:replace="fragments/head"></head>
+<body>
+
+<div id="main">
+    <div th:replace="fragments/current_user"></div>
+    <div th:replace="fragments/message"></div>
+    <p>Choose a file you wish see details:</p>
+
+    <div>
+        <p>List of encrypted files:</p>
+        <ul>
+            <li th:each="file : ${files}">
+                <a th:href="${file}" th:text="${file}"/>
+                <form method="POST" enctype="multipart/form-data" action="./comment">
+                    <input type="text" th:name="${file}" th:id="${file}">
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div th:replace="fragments/nav_buttons"></div>
+    <div th:replace="fragments/footer"></div>
+</div>
+</body>
+</html>
