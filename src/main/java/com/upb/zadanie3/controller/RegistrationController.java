@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,7 +34,6 @@ public class RegistrationController {
 
     @Autowired
     private CryptoLogic cryptoLogic;
-
 
     public RegistrationController() throws NoSuchAlgorithmException, NoSuchPaddingException {
     }
@@ -58,11 +58,11 @@ public class RegistrationController {
             return "redirect:/registration";
         }
         if(!password.equals(passwordRepeat)) {
-            attributes.addFlashAttribute("message", "PASSWORDS DO NOT EQUAL!");
+            attributes.addFlashAttribute("message", "alert");
             return "redirect:/registration";
         } else {
             if (cryptoLogic.dictionaryContainsPassword(password) || cryptoLogic.isPasswordInsecure(password)) {
-                attributes.addFlashAttribute("message", "WEAK PASSWORD!");
+                attributes.addFlashAttribute("message", "alert");
                 return "redirect:/registration";
             }
 
@@ -70,7 +70,7 @@ public class RegistrationController {
             Keys keys = cryptoLogic.generateKeyPairForDB();
             userService.save(new User(username, hashed, keys.publicKey, keys.privateKey));
         }
-        attributes.addFlashAttribute("message", "User registered successfully.");
+        attributes.addFlashAttribute("message", "success");
         return "redirect:/sign";
     }
 

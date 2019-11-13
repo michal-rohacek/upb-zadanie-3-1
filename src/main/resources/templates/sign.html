@@ -5,7 +5,16 @@
 
 <form action="/sign-user" method="post">
     <div class="container">
-        <div th:replace="fragments/message"></div>
+        <div th:if="${message == 'success'}">
+            <div class="alert alert-success" role="alert">
+                <h4>User registered successfully</h4>
+            </div>
+        </div>
+        <div th:if="${message == 'alert'}">
+            <div class="alert alert-danger" role="alert">
+                <h4>Wrong password</h4>
+            </div>
+        </div>
         <h1>Sign in</h1>
         <p>Please fill in this form to sign</p>
         <hr>
@@ -21,8 +30,6 @@
             <p>Don't have an account? Create one! <a href="registration">Create account</a>.</p>
         </div>
     </div>
-
-
 </form>
 
 </body>
