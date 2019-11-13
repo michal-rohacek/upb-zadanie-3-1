@@ -89,9 +89,7 @@ public class FileCommentControler {
             FileDto dto = new FileDto();
             dto.id = file.getId();
             dto.fileLink = getURI(filename);
-            for(Comment comment : file.getComments()) {
-                dto.comments.add(comment.getComment());
-            }
+            dto.comments.addAll(file.getComments());
             dtos.add(dto);
         }
         return dtos;

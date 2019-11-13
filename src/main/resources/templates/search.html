@@ -1,11 +1,18 @@
-<!DOCTYPE html>
 <html xmlns:th="https://www.thymeleaf.org">
 <head th:replace="fragments/head"></head>
 <body>
 
-<form action="/seeFilteredFiles" method="post">
-    <input id="search" type="search" name="search" required>
-    <input type="submit" value="Search" />
-</form>
+<div id="main">
+    <div th:replace="fragments/current_user"></div>
+    <p>Search by file name or comment:</p>
 
+    <form action="/seeFilteredFiles" method="post">
+        <input id="search" type="search" name="search" required>
+        <input type="submit" value="Search" />
+    </form>
+
+    <div th:replace="fragments/nav_buttons"></div>
+    <div th:replace="fragments/footer"></div>
+</div>
 </body>
+</html>

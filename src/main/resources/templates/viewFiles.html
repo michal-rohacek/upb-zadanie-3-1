@@ -11,10 +11,12 @@
         <ul>
             <li th:each="fileDto : ${fileDtos}">
                 <a th:href="${fileDto.fileLink}" th:text="${fileDto.fileLink}"/>
-
                 <ul>
                     <li th:each="comment: ${fileDto.comments}">
-                        <p th:text="${comment}"></p>
+                        <div class="row">
+                            <b>User :</b> <div class="col-2" th:text="${comment.userCreator.username}"></div>
+                            <b>Comment :</b> <div class="col-8" th:text="${comment.comment}"></div>
+                        </div>
                     </li>
                 </ul>
                 <form action="/addComment" method="post">
@@ -23,8 +25,6 @@
                     <input type="hidden" name="fileId" th:value="${fileDto.id}">
                     <input type="submit" value="Submit">
                 </form>
-
-
         </ul>
     </div>
 
