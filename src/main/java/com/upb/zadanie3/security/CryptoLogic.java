@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -181,13 +182,13 @@ public class CryptoLogic {
     public void decrypt(MultipartFile inputFile, UserService userService) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((UserPrincipal) principal).getUsername();
-        User logedUser = userService.getUserByUsername(userId);
+        User loggedUser = userService.getUserByUsername(userId);
 
         File fIn = multipartToFile(inputFile,inputFile.getName());
         File decryptedFile = new File("src/decrypted/" + inputFile.getOriginalFilename());
         FileInputStream inputStream = new FileInputStream(fIn);
 
-        this.privateKeyBytes = Base64.getDecoder().decode(logedUser.getPrivateKey());
+        this.privateKeyBytes = Base64.getDecoder().decode(loggedUser.getPrivateKey());
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.privateKeyBytes);
 
 
@@ -228,7 +229,6 @@ public class CryptoLogic {
     }
 
     public boolean dictionaryContainsPassword(String password) throws IOException {
-
         FileInputStream fstream = new FileInputStream(passwordsFilePath);
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
@@ -243,7 +243,7 @@ public class CryptoLogic {
     }
 
     private byte[] generateSaltBytes() throws NoSuchAlgorithmException {
-        byte[] saltBytes = new byte[SALT_SIZE * 8];
+        byte[] saltBytes = new byte[SALT_SIZE];
         SecureRandom secureRandom = new SecureRandom();
         secureRandom.nextBytes(saltBytes);
         return saltBytes;
@@ -281,5 +281,52 @@ public class CryptoLogic {
 
     public boolean isPasswordInsecure(String password) {
         return !password.matches(this.regex);
+    }
+
+    public void encryptPrivateKeyFile(UserService userService, String userPassword, PrivateKey privateKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((UserPrincipal) principal).getUsername();
+        User loggedUser = userService.getUserByUsername(userId);
+
+        byte[] ivBytes = generateIVBytes();
+        byte[] salt = Base64.getDecoder().decode(loggedUser.getPasswordHash().split("\\$")[0]);
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(userPassword.toCharArray(), salt, 10000, AES_KEY_SIZE_BITS);
+        SecretKey secretKey = factory.generateSecret(spec);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getEncoded(), "AES");
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(IV_SIZE * 8, ivBytes);
+        Cipher cipher = Cipher.getInstance(AES_GCM);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, gcmParameterSpec);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        outputStream.write(ivBytes);
+        outputStream.write(cipher.doFinal(privateKey.getEncoded()));
+
+        byte[] privateKeyEncrypted = outputStream.toByteArray();
+        loggedUser.setPrivateKey(Base64.getEncoder().encodeToString(privateKeyEncrypted));
+    }
+
+    public String decryptPrivateKeyFile(UserService userService, String userPassword) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((UserPrincipal) principal).getUsername();
+        User loggedUser = userService.getUserByUsername(userId);
+
+        byte[] privateKeyBytes = new byte[Base64.getDecoder().decode(loggedUser.getPrivateKey()).length - IV_SIZE];
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(loggedUser.getPrivateKey()));
+
+        byte[] ivBytes = new byte[IV_SIZE];
+        inputStream.read(ivBytes);
+        inputStream.read(privateKeyBytes);
+
+        byte[] salt = Base64.getDecoder().decode(loggedUser.getPasswordHash().split("\\$")[0]);
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(userPassword.toCharArray(), salt, 10000, AES_KEY_SIZE_BITS);
+        SecretKey secretKey = factory.generateSecret(spec);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getEncoded(), "AES");
+        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(IV_SIZE * 8, ivBytes);
+        Cipher cipher = Cipher.getInstance(AES_GCM);
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, gcmParameterSpec);
+
+        return Base64.getEncoder().encodeToString(cipher.doFinal(privateKeyBytes));
     }
 }
