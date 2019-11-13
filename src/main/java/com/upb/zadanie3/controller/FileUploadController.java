@@ -61,7 +61,7 @@ public class FileUploadController {
 
     @GetMapping("/encrypt")
     public String listUploadedFiles(Model model) throws IOException {
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         for (User user : userService.getAllUsers()) {
             names.add(user.getUsername());
         }
@@ -105,7 +105,7 @@ public class FileUploadController {
             cryptoLogic.loadPublicKey(user.getPublicKey());
             storageService.store(file, cryptoLogic);
             EncryptedFile encFile = new EncryptedFile();
-            encFile.setUserCreator(user);
+            encFile.setRecipientUser(user);
             encFile.setFileName(file.getOriginalFilename());
             fileRepository.save(encFile);
             redirectAttributes.addFlashAttribute("message",

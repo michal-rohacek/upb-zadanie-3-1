@@ -19,14 +19,14 @@ public class EncryptedFile {
     private List<Comment> coments;
 
     @ManyToOne
-    private User userCreator;
+    private User recipientUser;
 
-    public User getUserCreator() {
-        return userCreator;
+    public User getRecipientUser() {
+        return recipientUser;
     }
 
-    public void setUserCreator(User userCreator) {
-        this.userCreator = userCreator;
+    public void setRecipientUser(User recipientUser) {
+        this.recipientUser = recipientUser;
     }
 
     public EncryptedFile() {

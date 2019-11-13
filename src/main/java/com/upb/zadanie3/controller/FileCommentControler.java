@@ -37,7 +37,6 @@ public class FileCommentControler {
     @Autowired
     private StorageService storageService;
 
-
     @Autowired
     private IFileRepository fileRepository;
 
@@ -48,7 +47,7 @@ public class FileCommentControler {
                 path -> MvcUriComponentsBuilder.fromMethodName(FileCommentControler.class,
                         "serveFileComment", path.getFileName().toString()).build().toString())
                 .collect(Collectors.toList()));
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         for (User user : userService.getAllUsers()) {
             names.add(user.getUsername());
         }
