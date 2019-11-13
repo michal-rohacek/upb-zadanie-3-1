@@ -9,12 +9,22 @@
     <div>
         <p>List of encrypted files:</p>
         <ul>
-            <li th:each="file : ${files}">
-                <a th:href="${file}" th:text="${file}"/>
-                <form method="POST" enctype="multipart/form-data" action="./comment">
-                    <input type="text" th:name="${file}" th:id="${file}">
+            <li th:each="fileDto : ${fileDtos}">
+                <a th:href="${fileDto.fileLink}" th:text="${fileDto.fileLink}"/>
+
+                <ul>
+                    <li th:each="comment: ${fileDto.comments}">
+                        <p th:text="${comment}"></p>
+                    </li>
+                </ul>
+                <form action="/addComment" method="post">
+                    Add comment:
+                    <input type="text" name="comment" value="Type here...">
+                    <input type="hidden" name="fileId" th:value="${fileDto.id}">
+                    <input type="submit" value="Submit">
                 </form>
-            </li>
+
+
         </ul>
     </div>
 
