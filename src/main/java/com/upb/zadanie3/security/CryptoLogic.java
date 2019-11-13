@@ -188,7 +188,7 @@ public class CryptoLogic {
         File decryptedFile = new File("src/decrypted/" + inputFile.getOriginalFilename());
         FileInputStream inputStream = new FileInputStream(fIn);
 
-        this.privateKeyBytes = Base64.getDecoder().decode(loggedUser.getPrivateKey());
+        this.privateKeyBytes = Base64.getDecoder().decode(loggedUser.getDecryptedPK());
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.privateKeyBytes);
 
 
@@ -283,13 +283,9 @@ public class CryptoLogic {
         return !password.matches(this.regex);
     }
 
-    public void encryptPrivateKeyFile(UserService userService, String userPassword, PrivateKey privateKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((UserPrincipal) principal).getUsername();
-        User loggedUser = userService.getUserByUsername(userId);
-
+    public String encryptPrivateKey(UserService userService, String userPassword, String passwordHash, String privateKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         byte[] ivBytes = generateIVBytes();
-        byte[] salt = Base64.getDecoder().decode(loggedUser.getPasswordHash().split("\\$")[0]);
+        byte[] salt = Base64.getDecoder().decode(passwordHash.split("\\$")[0]);
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(userPassword.toCharArray(), salt, 10000, AES_KEY_SIZE_BITS);
         SecretKey secretKey = factory.generateSecret(spec);
@@ -300,13 +296,13 @@ public class CryptoLogic {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
         outputStream.write(ivBytes);
-        outputStream.write(cipher.doFinal(privateKey.getEncoded()));
+        outputStream.write(cipher.doFinal(Base64.getDecoder().decode(privateKey)));
 
         byte[] privateKeyEncrypted = outputStream.toByteArray();
-        loggedUser.setPrivateKey(Base64.getEncoder().encodeToString(privateKeyEncrypted));
+        return Base64.getEncoder().encodeToString(privateKeyEncrypted);
     }
 
-    public String decryptPrivateKeyFile(UserService userService, String userPassword) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public String decryptPrivateKey(UserService userService, String userPassword) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((UserPrincipal) principal).getUsername();
         User loggedUser = userService.getUserByUsername(userId);

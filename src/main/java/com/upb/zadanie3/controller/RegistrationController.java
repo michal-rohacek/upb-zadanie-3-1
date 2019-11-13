@@ -18,8 +18,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -52,7 +56,7 @@ public class RegistrationController {
     public String registerUser(@RequestParam("username") String username,
                                @RequestParam("password") String password,
                                @RequestParam("password-repeat") String passwordRepeat,
-                               RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException {
+                               RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchPaddingException {
         if(userService.getUserByUsername(username) != null) {
             attributes.addFlashAttribute("message", "User with username " + username + " already exists!");
             return "redirect:/registration";
@@ -68,27 +72,28 @@ public class RegistrationController {
 
             String hashed = cryptoLogic.getSaltedHash(password);
             Keys keys = cryptoLogic.generateKeyPairForDB();
-            userService.save(new User(username, hashed, keys.publicKey, keys.privateKey));
+            userService.save(new User(username, hashed, keys.publicKey, cryptoLogic.encryptPrivateKey(userService, password, hashed, keys.privateKey)));
         }
         attributes.addFlashAttribute("message", "success");
         return "redirect:/sign";
     }
 
-    @PostMapping("sign-user")
-    public String signUser(@RequestParam("username") String username,
-                           @RequestParam("password") String password,
-                           RedirectAttributes redirectAttributes) throws InvalidKeySpecException, NoSuchAlgorithmException, InterruptedException {
-
-        User user = userService.getUserByUsername(username);
-        if(user != null && cryptoLogic.comparePasswords(password, user.getPasswordHash())) {
-            redirectAttributes.addFlashAttribute("message", "User signed in successfully.");
-            return "redirect:/index";
-        } else {
-            Thread.sleep(5000);
-            redirectAttributes.addFlashAttribute("message", "Incorrect login or password!");
-            return "redirect:/sign";
-        }
-    }
+//    @PostMapping("sign-user")
+//    public String signUser(@RequestParam("username") String username,
+//                           @RequestParam("password") String password,
+//                           RedirectAttributes redirectAttributes) throws InvalidKeySpecException, NoSuchAlgorithmException, InterruptedException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+//
+//        User user = userService.getUserByUsername(username);
+//        if(user != null && cryptoLogic.comparePasswords(password, user.getPasswordHash())) {
+//            redirectAttributes.addFlashAttribute("message", "User signed in successfully.");
+//            user.setDecryptedPK(cryptoLogic.decryptPrivateKey(userService,password));
+//            return "redirect:/index";
+//        } else {
+//            Thread.sleep(5000);
+//            redirectAttributes.addFlashAttribute("message", "Incorrect login or password!");
+//            return "redirect:/sign";
+//        }
+//    }
 
     @GetMapping("sign-error")
     public String signError(RedirectAttributes attributes) {

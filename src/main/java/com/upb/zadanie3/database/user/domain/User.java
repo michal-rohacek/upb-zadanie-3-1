@@ -32,6 +32,17 @@ public class User {
     @OneToMany(mappedBy = "userCreator")
     private List<Comment> comments;
 
+    @Transient
+    private String decryptedPK;
+
+    public String getDecryptedPK() {
+        return decryptedPK;
+    }
+
+    public void setDecryptedPK(String decryptedPK) {
+        this.decryptedPK = decryptedPK;
+    }
+
     public User() {
     }
 
