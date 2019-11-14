@@ -94,6 +94,27 @@ ul {
 
 }
 
+.position {
+    position: relative;
+    top: 25px;
+}
+
+hr.separate-line {
+    border: 1px solid red;
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+
+.file-container {
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgba(142, 138, 142, 0.33);
+    box-shadow: 5px 5px 10px rgba(0, 0, 255, 0.11);
+    background-color: snow;
+    padding: 3%;
+    margin-bottom: 2%;
+}
+
 /* The container must be positioned relative: */
 .custom-select {
     position: relative;

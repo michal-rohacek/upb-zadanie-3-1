@@ -9,10 +9,9 @@
     <form method="POST" enctype="multipart/form-data" action="./encrypt">
         <input id="file-upload" name="file" type="file"/>
         <br><br>
-        Zadaj login usera, ktorému chceš zašifrovať súbor:
+        Enter the login username you want to encrypt the file for:
         <select name="username" class="custom-select">
-            <option th:each="user : ${users}" th:value="${user}" th:text="${user}">
-            </option>
+            <option th:each="user : ${users}" th:value="${user}" th:text="${user}"></option>
         </select>
         <input class="customButton" type="submit" value="Encrypt file"/>
     </form>

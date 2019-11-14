@@ -50,6 +50,7 @@ public class FileCommentControler {
     @GetMapping("/seeAllFiles")
     public String listUploadedFiles(Model model) throws IOException {
         model.addAttribute("fileDtos", getDTOsFromFilenames(getFilenamesFilteredBy(x -> true)));
+        model.addAttribute("myFiles", false);
 
         return "viewFiles";
     }
@@ -60,6 +61,8 @@ public class FileCommentControler {
         List<String> filenames = getFilenamesFilteredBy(filename -> userFiles.stream().map(EncryptedFile::getFileName).anyMatch(filename::equals));
 
         model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
+        model.addAttribute("myFiles", true);
+        model.addAttribute("users", getAllUserNames());
 
         return "viewFiles";
     }
@@ -105,6 +108,7 @@ public class FileCommentControler {
 
     @PostMapping("/addComment")
     public String addComment(@RequestParam("fileId") Integer fileId, @RequestParam("comment") String comment) {
+        if (comment.isEmpty())  return "redirect:./index";
         EncryptedFile file = fileRepository.findEncryptedFileById(fileId);
         Comment com = new Comment();
         com.setComment(comment);
@@ -125,17 +129,13 @@ public class FileCommentControler {
         return userService.getUserByUsername(getCurrentUsername());
     }
 
-//    private List<FileDto> getDtos(List<EncryptedFile> files) {
-//        FileDto dto = new FileDto();
-//        dto.filePath = files.get(0).getFileName()
-//    }
-
-
-//    @GetMapping("/error")
-//    @ResponseBody
-//    public String errorController() {
-//        return "error";
-//    }
+    private List<String> getAllUserNames() {
+        List<String> names = new ArrayList<>();
+        for (User user : userService.getAllUsers()) {
+            names.add(user.getUsername());
+        }
+        return names;
+    }
 
     private String getURI(String filename) {
         return MvcUriComponentsBuilder.fromMethodName(FileCommentControler.class,"serveFileComment", filename).build().toString();
