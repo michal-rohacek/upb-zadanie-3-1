@@ -48,25 +48,41 @@ public class RegistrationController {
     }
 
     @GetMapping("sign")
-    public String signForm() {
-        return isUserLoggedIn() ? "index" : "sign";
+    public String signForm(Model model) {
+        if (isUserLoggedIn()) {
+            model.addAttribute("message", ".");
+            model.addAttribute("error", false);
+            model.addAttribute("valid", false);
+            return "index";
+        } else {
+            model.addAttribute("message", "Wrong password!");
+            model.addAttribute("error", false);
+            model.addAttribute("valid", false);
+            return "sign";
+        }
     }
 
     @PostMapping("create-user")
     public String registerUser(@RequestParam("username") String username,
                                @RequestParam("password") String password,
                                @RequestParam("password-repeat") String passwordRepeat,
-                               RedirectAttributes attributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchPaddingException {
-        if(userService.getUserByUsername(username) != null) {
-            attributes.addFlashAttribute("message", "User with username " + username + " already exists!");
+                               RedirectAttributes redirectAttributes) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InterruptedException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchPaddingException {
+        if (userService.getUserByUsername(username) != null) {
+            redirectAttributes.addFlashAttribute("message", "User with username " + username + " already exists!");
+            redirectAttributes.addFlashAttribute("error", true);
+            redirectAttributes.addFlashAttribute("valid", false);
             return "redirect:/registration";
         }
-        if(!password.equals(passwordRepeat)) {
-            attributes.addFlashAttribute("message", "alert");
+        if (!password.equals(passwordRepeat)) {
+            redirectAttributes.addFlashAttribute("message", "Passwords do not match!");
+            redirectAttributes.addFlashAttribute("error", true);
+            redirectAttributes.addFlashAttribute("valid", false);
             return "redirect:/registration";
         } else {
             if (cryptoLogic.dictionaryContainsPassword(password) || cryptoLogic.isPasswordInsecure(password)) {
-                attributes.addFlashAttribute("message", "alert");
+                redirectAttributes.addFlashAttribute("message", "Password must contains one special character one number and on upper and lower case!");
+                redirectAttributes.addFlashAttribute("error", true);
+                redirectAttributes.addFlashAttribute("valid", false);
                 return "redirect:/registration";
             }
 
@@ -74,7 +90,9 @@ public class RegistrationController {
             Keys keys = cryptoLogic.generateKeyPairForDB();
             userService.save(new User(username, hashed, keys.publicKey, cryptoLogic.encryptPrivateKey(userService, password, hashed, keys.privateKey)));
         }
-        attributes.addFlashAttribute("message", "success");
+        redirectAttributes.addFlashAttribute("message", "User " + username + " has been successfully registered");
+        redirectAttributes.addFlashAttribute("error", false);
+        redirectAttributes.addFlashAttribute("valid", true);
         return "redirect:/sign";
     }
 

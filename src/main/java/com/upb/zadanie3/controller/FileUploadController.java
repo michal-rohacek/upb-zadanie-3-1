@@ -100,6 +100,8 @@ public class FileUploadController {
         if (userService.getUserByUsername(username) == null) {
             redirectAttributes.addFlashAttribute("message",
                     "No " + username + " user found in database");
+            redirectAttributes.addFlashAttribute("error", true);
+            redirectAttributes.addFlashAttribute("valid", false);
         } else {
             User user = userService.getUserByUsername(username);
             cryptoLogic.loadPublicKey(user.getPublicKey());
@@ -110,6 +112,8 @@ public class FileUploadController {
             fileRepository.save(encFile);
             redirectAttributes.addFlashAttribute("message",
                     "File " + file.getOriginalFilename() + " has been encrypted successfully!");
+            redirectAttributes.addFlashAttribute("valid", true);
+            redirectAttributes.addFlashAttribute("error", false);
         }
         return "redirect:./encrypt";
     }

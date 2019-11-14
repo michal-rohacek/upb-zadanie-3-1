@@ -1,0 +1,5 @@
+<div th:fragment="error_message" xmlns:th="https://www.thymeleaf.org" th:if="${message != null}" th:style="${error ? 'display:block' : 'display:none'}">
+    <div class="alert alert-danger" role="alert">
+        <h4 th:text="${message}"></h4>
+    </div>
+</div>

@@ -1,0 +1,17 @@
+<html xmlns:th="https://www.thymeleaf.org">
+<head th:replace="fragments/head"></head>
+<body>
+
+<div id="main">
+    <div th:replace="fragments/current_user"></div>
+    <p>Search by file name or comment:</p>
+
+    <form action="/seeFilteredFiles" method="post">
+        <input type="search" class="form-control" id="search" placeholder="Search by file names or comments" name="search" required>
+        <input style="background: #03dffc; border-color: #03dffc" class="btn btn-primary" type="submit" value="Search" />
+    </form>
+    <div th:replace="fragments/nav_buttons"></div>
+    <div th:replace="fragments/footer"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<div th:fragment="success_message" xmlns:th="https://www.thymeleaf.org" th:if="${message != null}" th:style="${valid ? 'display:block' : 'display:none'}">
+    <div class="alert alert-success" role="alert">
+        <h4 th:text="${message}"></h4>
+    </div>
+</div>

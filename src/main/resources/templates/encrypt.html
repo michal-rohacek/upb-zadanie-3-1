@@ -5,9 +5,14 @@
 <div id="main">
     <div th:replace="fragments/current_user"></div>
     <p>Choose a file you wish to encrypt:</p>
-
+    <div th:replace="fragments/success_message"></div>
+    <div th:replace="fragments/error_message"></div>
     <form method="POST" enctype="multipart/form-data" action="./encrypt">
-        <input id="file-upload" name="file" type="file"/>
+        <div class="custom-file">
+            <input type="file" class="file-upload" id="validatedCustomFile" name="file" required>
+            <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+            <div class="invalid-feedback">Example invalid custom file feedback</div>
+        </div>
         <br><br>
         Enter the login username you want to encrypt the file for:
         <select name="username" class="custom-select">

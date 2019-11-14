@@ -1,14 +1,16 @@
 <html xmlns:th="https://www.thymeleaf.org">
 <head th:replace="fragments/head"></head>
 <body>
-
 <div id="main">
     <div th:replace="fragments/current_user"></div>
     <form method="POST" enctype="multipart/form-data" action="./decrypt">
-        <input id="file-to-decrypt" type="file" name="file-to-decrypt"  checked>File to decrypt<br>
+        <div class="custom-file">
+            <input type="file" class="file-to-decrypt" id="validatedCustomFile" name="file-to-decrypt" required>
+            <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+            <div class="invalid-feedback">Example invalid custom file feedback</div>
+        </div>
         <input class="customButton" type="submit" value="Decrypt file"/>
     </form>
-
     <div th:replace="fragments/nav_buttons"></div>
 </div>
 </body>
