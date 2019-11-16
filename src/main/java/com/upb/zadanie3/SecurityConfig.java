@@ -49,7 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(getAuthenticationProvider());
+        auth.authenticationProvider(getAuthenticationProvider()).eraseCredentials(false);
         auth.authenticationEventPublisher(publisher());
     }
 

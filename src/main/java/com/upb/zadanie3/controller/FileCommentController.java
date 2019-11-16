@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 
 @Controller
-public class FileCommentControler {
+public class FileCommentController {
 
     @Autowired
     private UserService userService;
@@ -131,7 +131,7 @@ public class FileCommentControler {
     }
 
     private String getURI(String filename) {
-        return MvcUriComponentsBuilder.fromMethodName(FileCommentControler.class,"serveFileComment", filename).build().toString();
+        return MvcUriComponentsBuilder.fromMethodName(FileCommentController.class,"serveFileComment", filename).build().toString();
     }
 
     private List<EncryptedFile> findFilesContaining(String search, List<EncryptedFile> files) {

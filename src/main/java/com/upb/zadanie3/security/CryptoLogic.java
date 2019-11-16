@@ -58,8 +58,6 @@ public class CryptoLogic {
     @Value("${upb.resources.files.passwords-paths}")
     private String passwordsFilePath;
 
-
-
     public CryptoLogic() throws NoSuchPaddingException, NoSuchAlgorithmException {
         this.cipherSymmetric = Cipher.getInstance(AES_GCM);
         this.cipherAsymmetric = Cipher.getInstance(RSA_OAEP);
@@ -179,10 +177,9 @@ public class CryptoLogic {
         out.write(this.cipherSymmetric.doFinal(plainText));
     }
 
-    public void decrypt(MultipartFile inputFile, UserService userService) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
+    public void decrypt(MultipartFile inputFile) throws IOException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((UserPrincipal) principal).getUsername();
-        User loggedUser = userService.getUserByUsername(userId);
+        User loggedUser = ((UserPrincipal) principal).getUser();
 
         File fIn = multipartToFile(inputFile,inputFile.getName());
         File decryptedFile = new File("src/decrypted/" + inputFile.getOriginalFilename());
@@ -190,7 +187,6 @@ public class CryptoLogic {
 
         this.privateKeyBytes = Base64.getDecoder().decode(loggedUser.getDecryptedPK());
         this.x509EncodedKeySpec = new X509EncodedKeySpec(this.privateKeyBytes);
-
 
         // Extract IV
         this.ivBytes = new byte[IV_SIZE];
@@ -302,11 +298,7 @@ public class CryptoLogic {
         return Base64.getEncoder().encodeToString(privateKeyEncrypted);
     }
 
-    public String decryptPrivateKey(UserService userService, String userPassword) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((UserPrincipal) principal).getUsername();
-        User loggedUser = userService.getUserByUsername(userId);
-
+    public String decryptPrivateKey(User loggedUser, String userPassword) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException { ;
         byte[] privateKeyBytes = new byte[Base64.getDecoder().decode(loggedUser.getPrivateKey()).length - IV_SIZE];
         ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(loggedUser.getPrivateKey()));
 

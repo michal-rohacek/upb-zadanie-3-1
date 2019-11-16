@@ -71,10 +71,6 @@ public class FileUploadController {
 
     @GetMapping("/decrypt")
     public String decryptController() {
-
-        System.out.println("SOME STRING: " +getCurrentPrincipal().getSomeString());
-        System.out.println("USERname from principal: " + getCurrentPrincipal().getUsername());
-        System.out.println("USER from prinC:" + getCurrentPrincipal().getUser());
         return "decrypt";
     }
 
@@ -126,7 +122,7 @@ public class FileUploadController {
     public String handleDecryptFile(@RequestParam("file-to-decrypt") MultipartFile fileToDecrypt
     ) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
-        cryptoLogic.decrypt(fileToDecrypt, userService);
+        cryptoLogic.decrypt(fileToDecrypt);
         return "redirect:./decrypt/" + fileToDecrypt.getOriginalFilename();
     }
 
@@ -136,13 +132,14 @@ public class FileUploadController {
     }
 
     @GetMapping("/decrypt/decApp")
-    public ResponseEntity<Resource> downloadApp() throws IOException {
+    public ResponseEntity<Resource> downloadApp() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException
+    {
+        CryptoLogic cryptoLogic = new CryptoLogic();
         File outputFile = new File("src/app/DecryptApplication.zip");
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((UserPrincipal) principal).getUsername();
-        User logedUser = userService.getUserByUsername(userId);
-        byte[] privateKeyBytes = Base64.getDecoder().decode(logedUser.getPrivateKey());
+        User loggedUser = ((UserPrincipal) principal).getUser();
+        byte[] privateKeyBytes = Base64.getDecoder().decode(loggedUser.getDecryptedPK());
 
         File jar = new File("src/app/DecryptApplication.jar");
         File key = new File("src/keys/private.key");
@@ -170,6 +167,7 @@ public class FileUploadController {
         }
 
         zos.close();
+        key.delete();
         Resource resource = new UrlResource(outputFile.toURI());
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + resource.getFilename() + "\"").body(resource);
@@ -181,12 +179,6 @@ public class FileUploadController {
         return "error";
     }
 
-
-    //toto vrati UserPrincipal objekt, s tym uz normalne pracujes
-    //getCurrentPrincipal().getSomeString()
-    //getCurrentPrincipal().getUser().getPrivateKey()
-    //getUserPrincipal().setAnythingYouWant("anything")
-    //etc.
     private UserPrincipal getCurrentPrincipal() {
         return (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
