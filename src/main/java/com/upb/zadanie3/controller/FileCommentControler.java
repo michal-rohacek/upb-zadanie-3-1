@@ -72,6 +72,7 @@ public class FileCommentControler {
         List<String> filenames = getFilenamesFilteredBy(filename -> foundFiles.stream().map(EncryptedFile::getFileName).anyMatch(filename::equals));
 
         model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
+        model.addAttribute("myFiles", myFiles);
 
         return "viewFiles";
     }
