@@ -71,6 +71,10 @@ public class FileUploadController {
 
     @GetMapping("/decrypt")
     public String decryptController() {
+
+        System.out.println("SOME STRING: " +getCurrentPrincipal().getSomeString());
+        System.out.println("USERname from principal: " + getCurrentPrincipal().getUsername());
+        System.out.println("USER from prinC:" + getCurrentPrincipal().getUser());
         return "decrypt";
     }
 
@@ -175,5 +179,15 @@ public class FileUploadController {
     @ResponseBody
     public String errorController() {
         return "error";
+    }
+
+
+    //toto vrati UserPrincipal objekt, s tym uz normalne pracujes
+    //getCurrentPrincipal().getSomeString()
+    //getCurrentPrincipal().getUser().getPrivateKey()
+    //getUserPrincipal().setAnythingYouWant("anything")
+    //etc.
+    private UserPrincipal getCurrentPrincipal() {
+        return (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
