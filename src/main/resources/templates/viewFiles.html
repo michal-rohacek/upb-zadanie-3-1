@@ -11,30 +11,18 @@
                 <p>Search by file name or comment:</p>
 
                 <form action="/seeFilteredFiles" method="post">
-                    <input id="search" type="search" name="search" required>
-                    <input style="background-color: #03dffc;" type="submit" value="Search" />
+                    <input id="search" class="input-comment" type="search" name="search" required>
+                    <input type="hidden" name="myFiles" th:value="${myFiles}">
+                    <input class="submit-button" type="submit" value="Search" />
                 </form>
             </div>
         </div>
         <hr>
+        <h3 th:text="${myFiles} ? 'Only your files' : 'All files'"></h3>
         <p>List of encrypted files:</p>
         <ul>
             <li class="file-container" th:each="fileDto : ${fileDtos}">
-                <div class="row">
-                    <b>File : </b><a th:class="${myFiles} ? col-6 : ''" th:classappend ="${myFiles} ? position : ''" th:href="${fileDto.fileLink}" th:text="${fileDto.fileLink}"/>
-                    <div class="col-4" th:if="${myFiles}">
-                        Enter the login username you want to encrypt the file for:
-                        <form method="post" enctype="multipart/form-data" action="/reEncryptToUser">
-                            <select name="username" class="custom-select">
-                                <option th:each="user : ${users}" th:value="${user}" th:text="${user}"></option>
-                            </select>
-<!--                            TODO sem si dopln udaje, ktore chces do controllera-->
-<!--                            <input type="hidden" name="creatorUser" value="${user}">-->
-<!--                            <input type="hidden" name="creatorUser" value="${user}">-->
-                            <input style="position: absolute; background-color: #03dffc;" type="submit" value="Send"/>
-                        </form>
-                    </div>
-                </div>
+                <b>File : </b><a th:href="${fileDto.fileLink}" th:text="${fileDto.fileLink}"/>
                 <ul>
                     <li th:each="comment: ${fileDto.comments}">
                         <div class="row">
@@ -43,11 +31,24 @@
                         </div>
                     </li>
                 </ul>
-                <form action="/addComment" method="post">
+                <form action="/addComment" method="post" class="form-inline" style="margin-top: 3%;">
                     Add comment:
-                    <input type="text" name="comment" placeholder="Type here ...">
+                    <input type="text" name="comment" placeholder="Type here ..." class="form-group" style="
+                        margin-left: 3%;
+                        margin-right: 2%;
+                        padding: 15px;
+                        display: inline-block;
+                        border: none;
+                        background: #f1f1f1;">
                     <input type="hidden" name="fileId" th:value="${fileDto.id}">
-                    <input style="background-color: #03dffc;" type="submit" value="Submit">
+                    <input type="hidden" name="myFiles" th:value="${myFiles}">
+                    <input type="submit" value="Add" style="
+                        background-color: #03dffc;
+                        color: white;
+                        padding: 16px 20px;
+                        margin: 8px 0;
+                        border: none;
+                        opacity: 0.9;">
                 </form>
 
         </ul>

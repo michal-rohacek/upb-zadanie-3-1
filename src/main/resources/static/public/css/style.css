@@ -23,7 +23,16 @@ body {
 }
 
 /* Full-width input fields */
-input[type=text], input[type=password] {
+input[type=password] {
+    width: 100%;
+    padding: 15px;
+    margin: 5px 0 22px 0;
+    display: inline-block;
+    border: none;
+    background: #f1f1f1;
+}
+
+.sign {
     width: 100%;
     padding: 15px;
     margin: 5px 0 22px 0;
@@ -53,6 +62,24 @@ hr {
     cursor: pointer;
     width: 100%;
     opacity: 0.9;
+}
+
+input.submit-button {
+    background-color: #03dffc;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    opacity: 0.9;
+}
+
+input.input-comment {
+    margin-left: 3%;
+    margin-right: 2%;
+    padding: 15px;
+    display: inline-block;
+    border: none;
+    background: #f1f1f1;
 }
 
 .hyperlink:hover, .customButton:hover {

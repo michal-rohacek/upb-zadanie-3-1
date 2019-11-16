@@ -62,14 +62,13 @@ public class FileCommentControler {
 
         model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
         model.addAttribute("myFiles", true);
-        model.addAttribute("users", getAllUserNames());
 
         return "viewFiles";
     }
 
     @PostMapping("/seeFilteredFiles")
-    public String listFilteredFiles(@RequestParam("search") String search, Model model) throws IOException {
-        List<EncryptedFile> foundFiles = findFilesContaining(search);
+    public String listFilteredFiles(@RequestParam("search") String search, @RequestParam("myFiles") boolean myFiles, Model model) throws IOException {
+        List<EncryptedFile> foundFiles = findFilesContaining(search, myFiles ? fileRepository.getAllByRecipientUser(getCurrentUser()) : fileRepository.findAll());
         List<String> filenames = getFilenamesFilteredBy(filename -> foundFiles.stream().map(EncryptedFile::getFileName).anyMatch(filename::equals));
 
         model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
@@ -107,8 +106,9 @@ public class FileCommentControler {
     }
 
     @PostMapping("/addComment")
-    public String addComment(@RequestParam("fileId") Integer fileId, @RequestParam("comment") String comment) {
-        if (comment.isEmpty())  return "redirect:./index";
+    public String addComment(@RequestParam("fileId") Integer fileId, @RequestParam("comment") String comment, @RequestParam("myFiles") boolean myFiles) {
+        String redirectEndpoint = myFiles ? "./seeMyFiles" : "./seeAllFiles";
+        if (comment.isEmpty())  return "redirect:" + redirectEndpoint;
         EncryptedFile file = fileRepository.findEncryptedFileById(fileId);
         Comment com = new Comment();
         com.setComment(comment);
@@ -117,7 +117,7 @@ public class FileCommentControler {
         file.getComments().add(com);
         fileRepository.save(file);
         commentRepository.save(com);
-        return "redirect:./index";
+        return "redirect:" + redirectEndpoint;
     }
 
     private String getCurrentUsername() {
@@ -129,22 +129,13 @@ public class FileCommentControler {
         return userService.getUserByUsername(getCurrentUsername());
     }
 
-    private List<String> getAllUserNames() {
-        List<String> names = new ArrayList<>();
-        for (User user : userService.getAllUsers()) {
-            names.add(user.getUsername());
-        }
-        return names;
-    }
-
     private String getURI(String filename) {
         return MvcUriComponentsBuilder.fromMethodName(FileCommentControler.class,"serveFileComment", filename).build().toString();
     }
 
-    private List<EncryptedFile> findFilesContaining(String search) {
-        List<EncryptedFile> allFiles = fileRepository.findAll();
+    private List<EncryptedFile> findFilesContaining(String search, List<EncryptedFile> files) {
         List<EncryptedFile> result = new ArrayList<>();
-        for(EncryptedFile file: allFiles) {
+        for(EncryptedFile file: files) {
             for(Comment comment : file.getComments()) {
                 if(comment.getComment() != null && comment.getComment().contains(search))
                     result.add(file);
