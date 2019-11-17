@@ -13,7 +13,7 @@ public interface StorageService {
 
     void init();
 
-    void store(MultipartFile file, CryptoLogic cryptoLogic) throws NoSuchAlgorithmException, NoSuchPaddingException;
+    void store(MultipartFile file, CryptoLogic cryptoLogic, String uniqueFilename) throws NoSuchAlgorithmException, NoSuchPaddingException;
 
     Stream<Path> loadAll(Path location);
 

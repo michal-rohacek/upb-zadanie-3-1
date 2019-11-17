@@ -105,17 +105,51 @@ public class FileUploadController {
         } else {
             User user = userService.getUserByUsername(username);
             cryptoLogic.loadPublicKey(user.getPublicKey());
-            storageService.store(file, cryptoLogic);
+            String uniqueFilename = getUniqueFilename(file);
+            storageService.store(file, cryptoLogic, uniqueFilename);
             EncryptedFile encFile = new EncryptedFile();
             encFile.setRecipientUser(user);
-            encFile.setFileName(file.getOriginalFilename());
+            encFile.setFileName(uniqueFilename);
             fileRepository.save(encFile);
             redirectAttributes.addFlashAttribute("message",
-                    "File " + file.getOriginalFilename() + " has been encrypted successfully!");
+                    "File " + uniqueFilename + " has been encrypted successfully!");
             redirectAttributes.addFlashAttribute("valid", true);
             redirectAttributes.addFlashAttribute("error", false);
         }
         return "redirect:./encrypt";
+    }
+
+    private String getUniqueFilename(MultipartFile file) {
+        String currentFilename = file.getOriginalFilename();
+        System.out.println("Current: " + currentFilename);
+        EncryptedFile found = fileRepository.findEncryptedFilesByFileName(currentFilename);
+        if (found != null) {
+            System.out.println("FOUND NOT NULL FIRS");
+            while(fileRepository.findEncryptedFilesByFileName(currentFilename) != null) {
+                System.out.println("found not null in while b4 incr");
+                currentFilename = incrementFilenameNumber(currentFilename);
+                System.out.println("filename after inct: " + currentFilename);
+            }
+        }
+        System.out.println("found null, returning " + currentFilename);
+        return currentFilename;
+    }
+
+    private String incrementFilenameNumber(String filenameWithExtension) {
+        int indexOfExtensionDot = filenameWithExtension.lastIndexOf(".");
+        String filename = filenameWithExtension.substring(0, indexOfExtensionDot);
+        String extension = filenameWithExtension.substring(indexOfExtensionDot + 1, filenameWithExtension.length());
+
+        System.out.println("filename: " + filename);
+        System.out.println("extension: " + extension);
+
+        if ( (filename.length() > 4) && (filename.substring(filename.length()-4, filename.length()-1).equals("---")) ) {
+            Integer number = Integer.valueOf(filename.substring(filename.length() - 1));
+            number++;
+            return filename.substring(0, filename.length() - 1) + number + "." + extension;
+        } else {
+            return filename + "---0." + extension;
+        }
     }
 
     @PostMapping("/decrypt")

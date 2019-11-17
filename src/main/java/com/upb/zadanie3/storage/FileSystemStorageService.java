@@ -14,6 +14,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
+import com.upb.zadanie3.database.file.domain.IFileRepository;
 import com.upb.zadanie3.security.CryptoLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -32,11 +33,14 @@ import javax.xml.stream.Location;
 public class FileSystemStorageService implements StorageService {
 
     @Autowired
+    private IFileRepository fileRepository;
+
+    @Autowired
     public FileSystemStorageService() { }
 
     @Override
-    public void store(MultipartFile file, CryptoLogic cryptoLogic) throws NoSuchAlgorithmException, NoSuchPaddingException {
-        String filename = StringUtils.cleanPath(file.getOriginalFilename());
+    public void store(MultipartFile file, CryptoLogic cryptoLogic, String uniqueFilename) throws NoSuchAlgorithmException, NoSuchPaddingException {
+        String filename = StringUtils.cleanPath(uniqueFilename);
         File encrypted = new File("encrypted");
         try {
             if (file.isEmpty()) {
