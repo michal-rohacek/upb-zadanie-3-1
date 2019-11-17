@@ -27,7 +27,7 @@
                     <li th:each="comment: ${fileDto.comments}">
                         <div class="row">
                             <b>User :</b> <div class="col-2" th:text="${comment.userCreator.username}"></div>
-                            <b>Comment :</b> <div class="col-8" th:text="${comment.comment}"></div>
+                            <b>Comment :</b> <div class="col-8" style="word-wrap: break-word;" th:text="${comment.comment}"></div>
                         </div>
                     </li>
                 </ul>
