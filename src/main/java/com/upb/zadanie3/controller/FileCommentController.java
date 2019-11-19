@@ -49,7 +49,7 @@ public class FileCommentController {
 
     @GetMapping("/seeAllFiles")
     public String listUploadedFiles(Model model) throws IOException {
-        model.addAttribute("fileDtos", getDTOsFromFilenames(getFilenamesFilteredBy(x -> true)));
+        model.addAttribute("fileDtos", getDTOsFromFilenames(getFilenamesFilteredBy(x -> !x.contains("-----"))));
         model.addAttribute("myFiles", false);
 
         return "viewFiles";

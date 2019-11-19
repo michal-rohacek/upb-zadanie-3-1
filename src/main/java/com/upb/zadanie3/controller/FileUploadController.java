@@ -143,12 +143,12 @@ public class FileUploadController {
         System.out.println("filename: " + filename);
         System.out.println("extension: " + extension);
 
-        if ( (filename.length() > 4) && (filename.substring(filename.length()-4, filename.length()-1).equals("---")) ) {
+        if ( (filename.length() > 6) && (filename.substring(filename.length() - 6, filename.length() - 1).equals("-----")) ) {
             Integer number = Integer.valueOf(filename.substring(filename.length() - 1));
             number++;
             return filename.substring(0, filename.length() - 1) + number + "." + extension;
         } else {
-            return filename + "---0." + extension;
+            return filename + "-----0." + extension;
         }
     }
 
