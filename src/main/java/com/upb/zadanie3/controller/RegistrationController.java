@@ -1,12 +1,11 @@
 package com.upb.zadanie3.controller;
 
-import com.upb.zadanie3.database.file.domain.EncryptedFile;
-import com.upb.zadanie3.database.file.domain.IFileRepository;
-import com.upb.zadanie3.database.user.domain.UserPrincipal;
 import com.upb.zadanie3.security.CryptoLogic;
 import com.upb.zadanie3.security.Keys;
 import com.upb.zadanie3.database.user.domain.User;
 import com.upb.zadanie3.database.user.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.crypto.BadPaddingException;
@@ -30,11 +28,10 @@ import java.security.spec.InvalidKeySpecException;
 @Controller
 public class RegistrationController {
 
-    @Autowired
-    private UserService userService;
+    public static final Logger log = LoggerFactory.getLogger(RegistrationController.class);
 
     @Autowired
-    private IFileRepository iFileRepository;
+    private UserService userService;
 
     @Autowired
     private CryptoLogic cryptoLogic;
@@ -71,18 +68,21 @@ public class RegistrationController {
             redirectAttributes.addFlashAttribute("message", "User with username " + username + " already exists!");
             redirectAttributes.addFlashAttribute("error", true);
             redirectAttributes.addFlashAttribute("valid", false);
+            log.warn("User with username " + username + " already exists!");
             return "redirect:/registration";
         }
         if (!password.equals(passwordRepeat)) {
             redirectAttributes.addFlashAttribute("message", "Passwords do not match!");
             redirectAttributes.addFlashAttribute("error", true);
             redirectAttributes.addFlashAttribute("valid", false);
+            log.warn("Passwords do not match!");
             return "redirect:/registration";
         } else {
             if (cryptoLogic.dictionaryContainsPassword(password) || cryptoLogic.isPasswordInsecure(password)) {
                 redirectAttributes.addFlashAttribute("message", "Password must contains one special character one number and on upper and lower case!");
                 redirectAttributes.addFlashAttribute("error", true);
                 redirectAttributes.addFlashAttribute("valid", false);
+                log.warn("Password must contains one special character one number and on upper and lower case!");
                 return "redirect:/registration";
             }
 
@@ -93,6 +93,7 @@ public class RegistrationController {
         redirectAttributes.addFlashAttribute("message", "User " + username + " has been successfully registered");
         redirectAttributes.addFlashAttribute("error", false);
         redirectAttributes.addFlashAttribute("valid", true);
+        log.info("User " + username + " has been successfully registered");
         return "redirect:/sign";
     }
 

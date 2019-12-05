@@ -10,6 +10,8 @@ import com.upb.zadanie3.database.user.domain.User;
 import com.upb.zadanie3.database.user.domain.UserPrincipal;
 import com.upb.zadanie3.database.user.service.UserService;
 import com.upb.zadanie3.storage.StorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +31,8 @@ import java.util.stream.Collectors;
 
 @Controller
 public class FileCommentController {
+
+    public static final Logger log = LoggerFactory.getLogger(FileCommentController.class);
 
     @Autowired
     private UserService userService;
@@ -57,7 +61,7 @@ public class FileCommentController {
 
     @GetMapping("/seeMyFiles")
     public String listCurrentUserFiles(Model model) throws IOException {
-        List<EncryptedFile> userFiles = fileRepository.getAllByRecipientUser(getCurrentUser());
+        List<EncryptedFile> userFiles = fileRepository.getAllByRecipientUser(userService.getCurrentUser());
         List<String> filenames = getFilenamesFilteredBy(filename -> userFiles.stream().map(EncryptedFile::getFileName).anyMatch(filename::equals));
 
         model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
@@ -68,11 +72,12 @@ public class FileCommentController {
 
     @PostMapping("/seeFilteredFiles")
     public String listFilteredFiles(@RequestParam("search") String search, @RequestParam("myFiles") boolean myFiles, Model model) throws IOException {
-        List<EncryptedFile> foundFiles = findFilesContaining(search, myFiles ? fileRepository.getAllByRecipientUser(getCurrentUser()) : fileRepository.findAll());
+        List<EncryptedFile> foundFiles = findFilesContaining(search, myFiles ? fileRepository.getAllByRecipientUser(userService.getCurrentUser()) : fileRepository.findAll());
         List<String> filenames = getFilenamesFilteredBy(filename -> foundFiles.stream().map(EncryptedFile::getFileName).anyMatch(filename::equals));
 
         model.addAttribute("fileDtos", getDTOsFromFilenames(filenames));
         model.addAttribute("myFiles", myFiles);
+        log.info("Logged user " + userService.getCurrentUsername() + " filtered='" + (myFiles ? "only their files" : "all files") + "' with search closure '" + search);
 
         return "viewFiles";
     }
@@ -114,20 +119,12 @@ public class FileCommentController {
         Comment com = new Comment();
         com.setComment(comment);
         com.setEncryptedFile(file);
-        com.setUserCreator(getCurrentUser());
+        com.setUserCreator(userService.getCurrentUser());
         file.getComments().add(com);
         fileRepository.save(file);
         commentRepository.save(com);
+        log.info("Logged user " + userService.getCurrentUsername() + " add comment='" + comment + "' for '" + file.getFileName() + "' file.");
         return "redirect:" + redirectEndpoint;
-    }
-
-    private String getCurrentUsername() {
-        UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return principal.getUsername();
-    }
-
-    private User getCurrentUser() {
-        return userService.getUserByUsername(getCurrentUsername());
     }
 
     private String getURI(String filename) {

@@ -9,6 +9,8 @@ import com.upb.zadanie3.storage.StorageService;
 import com.upb.zadanie3.database.user.domain.User;
 import com.upb.zadanie3.database.user.domain.UserPrincipal;
 import com.upb.zadanie3.database.user.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -40,6 +42,8 @@ import java.util.zip.ZipOutputStream;
 @Controller
 @PreAuthorize("isAuthenticated()")
 public class FileUploadController {
+
+    public static final Logger log = LoggerFactory.getLogger(FileUploadController.class);
 
     private final StorageService storageService;
 
@@ -102,6 +106,7 @@ public class FileUploadController {
                     "No " + username + " user found in database");
             redirectAttributes.addFlashAttribute("error", true);
             redirectAttributes.addFlashAttribute("valid", false);
+            log.warn("No '" + username + "' user found in database");
         } else {
             User user = userService.getUserByUsername(username);
             cryptoLogic.loadPublicKey(user.getPublicKey());
@@ -115,6 +120,7 @@ public class FileUploadController {
                     "File " + uniqueFilename + " has been encrypted successfully!");
             redirectAttributes.addFlashAttribute("valid", true);
             redirectAttributes.addFlashAttribute("error", false);
+            log.info("Logged user " + userService.getCurrentUsername() + " encrypted file='" + file.getOriginalFilename() + "' for user='" + username + "' to database.");
         }
         return "redirect:./encrypt";
     }
@@ -157,6 +163,7 @@ public class FileUploadController {
     ) throws NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         CryptoLogic cryptoLogic = new CryptoLogic();
         cryptoLogic.decrypt(fileToDecrypt);
+        log.info("Logged user '" + userService.getCurrentUsername() + "' decrypt file='" + fileToDecrypt.getOriginalFilename());
         return "redirect:./decrypt/" + fileToDecrypt.getOriginalFilename();
     }
 
@@ -203,6 +210,7 @@ public class FileUploadController {
         zos.close();
         key.delete();
         Resource resource = new UrlResource(outputFile.toURI());
+        log.info("Logged user '" + userService.getCurrentUsername() + "' download decrypt application.");
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + resource.getFilename() + "\"").body(resource);
     }

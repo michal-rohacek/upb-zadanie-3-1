@@ -6,10 +6,14 @@ import java.util.List;
 
 public interface UserService {
 
-    public List<User> getAllUsers();
+    List<User> getAllUsers();
 
-    public User getUserByUsername(String username);
+    User getUserByUsername(String username);
 
-    public void save(User user);
+    void save(User user);
+
+    String getCurrentUsername();
+
+    User getCurrentUser();
 
 }
